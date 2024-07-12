@@ -31,6 +31,10 @@ void GameInteractor_ExecuteOnSaveInit(s16 fileNum) {
     GameInteractor::Instance->ExecuteHooks<GameInteractor::OnSaveInit>(fileNum);
 }
 
+void GameInteractor_ExecuteOnLoadSave(s16 fileNum) {
+    GameInteractor::Instance->ExecuteHooks<GameInteractor::OnLoadSave>(fileNum);
+}
+
 void GameInteractor_ExecuteBeforeEndOfCycleSave() {
     GameInteractor::Instance->ExecuteHooks<GameInteractor::BeforeEndOfCycleSave>();
 }

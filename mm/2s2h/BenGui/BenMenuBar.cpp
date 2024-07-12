@@ -815,6 +815,32 @@ void DrawDeveloperToolsMenu() {
     }
 }
 
+void DrawNetworkMenu() {
+    if (UIWidgets::BeginMenu("Network", UIWidgets::Colors::Yellow)) {
+        if (!CVarGetInteger("gRemote.Enabled", 0)) {
+            if (UIWidgets::Button("Enable Network")) {
+
+            CVarSetString("gRemote.IP", "anchor.proxysaw.dev");
+            CVarSetString("gRemote.Port", "43384");
+            CVarSetString("gRemote.AnchorName", "bdude2");
+            CVarSetString("gRemote.AnchorRoomId", "bdude2mm");
+            CVarSetInteger("gRemote.Enabled", 1);
+            Ship::Context::GetInstance()->GetWindow()->GetGui()->SaveConsoleVariablesOnNextTick();
+            }
+        }
+        if (CVarGetInteger("gRemote.Enabled", 0)) {
+            //ImGui::Text("%s Room %d", warpPointSceneList[sceneId], CVarGetInteger(CV "Room", 0));
+            
+            if (UIWidgets::Button("Disable Network")) {
+                
+                CVarClear("gRemote.Enabled");
+                Ship::Context::GetInstance()->GetWindow()->GetGui()->SaveConsoleVariablesOnNextTick();
+            }
+        }
+        ImGui::EndMenu();
+    }
+}
+
 void BenMenuBar::InitElement() {
     UpdateWindowBackendObjects();
 }
@@ -845,6 +871,10 @@ void BenMenuBar::DrawElement() {
         ImGui::SetCursorPosY(0.0f);
 
         DrawDeveloperToolsMenu();
+
+        ImGui::SetCursorPosY(0.0f);
+
+        DrawNetworkMenu();
 
         ImGui::SetCursorPosY(0.0f);
 

@@ -16,6 +16,7 @@
 #include "2s2h_assets.h"
 #include <string.h>
 #include "BenPort.h"
+#include "2s2h/Enhancements/GameInteractor/GameInteractor.h"
 
 s32 D_808144F10 = 100;
 f32 D_808144F14 = 8.0f;
@@ -2231,6 +2232,8 @@ void FileSelect_LoadGame(GameState* thisx) {
     gSaveContext.hudVisibilityTimer = 0;
 
     gSaveContext.save.saveInfo.playerData.tatlTimer = 0;
+
+    GameInteractor_ExecuteOnLoadSave(gSaveContext.fileNum);
 }
 
 void (*sSelectModeUpdateFuncs[])(GameState*) = {

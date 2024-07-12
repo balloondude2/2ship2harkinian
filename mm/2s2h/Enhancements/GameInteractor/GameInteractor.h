@@ -260,6 +260,7 @@ class GameInteractor {
     DEFINE_HOOK(OnConsoleLogoUpdate, ());
     DEFINE_HOOK(OnKaleidoUpdate, (PauseContext * pauseCtx));
     DEFINE_HOOK(OnSaveInit, (s16 fileNum));
+    DEFINE_HOOK(OnLoadSave, (s16 fileNum));
     DEFINE_HOOK(BeforeEndOfCycleSave, ());
     DEFINE_HOOK(AfterEndOfCycleSave, ());
     DEFINE_HOOK(BeforeMoonCrashSaveReset, ());
@@ -304,6 +305,7 @@ void GameInteractor_ExecuteOnGameStateUpdate();
 void GameInteractor_ExecuteOnConsoleLogoUpdate();
 void GameInteractor_ExecuteOnKaleidoUpdate(PauseContext* pauseCtx);
 void GameInteractor_ExecuteOnSaveInit(s16 fileNum);
+void GameInteractor_ExecuteOnLoadSave(s16 fileNum);
 void GameInteractor_ExecuteBeforeEndOfCycleSave();
 void GameInteractor_ExecuteAfterEndOfCycleSave();
 void GameInteractor_ExecuteBeforeMoonCrashSaveReset();
