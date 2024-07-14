@@ -75,6 +75,10 @@ typedef enum {
 #include <cstdint>
 #include <algorithm>
 
+#include <SDL2/SDL_net.h>
+#include <nlohmann/json.hpp>
+#include <thread>
+
 typedef uint32_t HOOK_ID;
 
 #define DEFINE_HOOK(name, args)                  \
@@ -84,11 +88,37 @@ typedef uint32_t HOOK_ID;
     }
 
 class GameInteractor {
+  private: 
+    IPaddress remoteIP;
+    TCPsocket remoteSocket;
+    std::thread remoteThreadReceive;
+    std::function<void(char payload[512])> remoteDataHandler;
+    std::function<void(nlohmann::json)> remoteJsonHandler;
+    std::function<void()> remoteConnectedHandler;
+    std::function<void()> remoteDisconnectedHandler;
+
+    void ReceiveFromServer();
+    void HandleRemoteData(char payload[512]);
+    void HandleRemoteJson(std::string payload);
+
   public:
     static GameInteractor* Instance;
 
     // Game State
     class State {};
+
+    // Remote
+    bool isRemoteInteractorEnabled;
+    bool isRemoteInteractorConnected;
+
+    void EnableRemoteInteractor();
+    void DisableRemoteInteractor();
+    void RegisterRemoteDataHandler(std::function<void(char payload[512])> method);
+    void RegisterRemoteJsonHandler(std::function<void(nlohmann::json)> method);
+    void RegisterRemoteConnectedHandler(std::function<void()> method);
+    void RegisterRemoteDisconnectedHandler(std::function<void()> method);
+    void TransmitDataToRemote(const char* payload);
+    void TransmitJsonToRemote(nlohmann::json packet);
 
     // Game Hooks
     HOOK_ID nextHookId = 1;

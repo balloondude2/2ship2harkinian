@@ -7,6 +7,11 @@
 #include "./GameInteractor.h"
 
 typedef struct {
+    u8 playerForm;
+} PlayerData;
+
+
+typedef struct {
     uint32_t clientId;
     std::string clientVersion;
     std::string name;
@@ -32,6 +37,7 @@ class GameInteractorAnchor {
         static std::vector<uint32_t> FairyIndexToClientId;
         static std::string clientVersion;
         static std::string seed;
+        static PlayerData playerData;
 
         void Enable();
         void Disable();
