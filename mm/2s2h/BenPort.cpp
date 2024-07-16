@@ -48,7 +48,7 @@ CrowdControl* CrowdControl::Instance;
 #include <libultraship/libultraship.h>
 #include <BenGui/BenGui.hpp>
 
-#include "Enhancements/GameInteractor/GameInteractor.h"
+// #include "Enhancements/GameInteractor/GameInteractor.h"
 #include "Enhancements/Enhancements.h"
 #include "2s2h/Enhancements/GfxPatcher/AuthenticGfxPatches.h"
 #include "2s2h/DeveloperTools/DebugConsole.h"
@@ -96,12 +96,17 @@ CrowdControl* CrowdControl::Instance;
 #include "2s2h/resource/importer/TextureAnimationFactory.h"
 #include "2s2h/resource/importer/KeyFrameFactory.h"
 
+
+#include "Enhancements/GameInteractor/GameInteractor_Anchor.h"
+GameInteractorAnchor* GameInteractorAnchor::Instance;
+
+//#include <SDL2/SDL_net.h>
+#include "Enhancements/GameInteractor/GameInteractor.h"
+
 OTRGlobals* OTRGlobals::Instance;
 GameInteractor* GameInteractor::Instance;
 
-#include <SDL2/SDL_net.h>
-#include "Enhancements/GameInteractor/GameInteractor_Anchor.h"
-GameInteractorAnchor* GameInteractorAnchor::Instance;
+
 
 extern "C" char** cameraStrings;
 bool prevAltAssets = false;

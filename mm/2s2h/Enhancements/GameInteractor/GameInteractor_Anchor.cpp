@@ -16,7 +16,7 @@ extern "C" {
 #include "z64scene.h"
 #include "z64actor.h"
 #include "functions.h"
-extern "C" s16 gEnLinkPuppetId;
+//extern "C" s16 gEnLinkPuppetId;
 extern PlayState* gPlayState;
 extern SaveContext gSaveContext;
 }
@@ -657,9 +657,9 @@ void Anchor_SpawnClientFairies() {
     if (gPlayState == NULL) return;
     Actor* actor = gPlayState->actorCtx.actorLists[ACTORCAT_ITEMACTION].first;
     while (actor != NULL) {
-        if (gEnLinkPuppetId == actor->id) {
-            Actor_Kill(actor);
-        }
+        // if (gEnLinkPuppetId == actor->id) {
+        //     Actor_Kill(actor);
+        // }
         actor = actor->next;
     }
 
@@ -668,7 +668,7 @@ void Anchor_SpawnClientFairies() {
     uint32_t i = 0;
     for (auto [clientId, client] : GameInteractorAnchor::AnchorClients) {
         GameInteractorAnchor::FairyIndexToClientId.push_back(clientId);
-        auto fairy = Actor_Spawn(&gPlayState->actorCtx, gPlayState, gEnLinkPuppetId, -9999.0, -9999.0, -9999.0, 0, 0, 0, 3 + i);
+        auto fairy = Actor_Spawn(&gPlayState->actorCtx, gPlayState, 1 /*gEnLinkPuppetId*/ , -9999.0, -9999.0, -9999.0, 0, 0, 0, 3 + i);
 
         PlayerData playerData = Anchor_GetClientPlayerData(i);
 

@@ -75,9 +75,10 @@ typedef enum {
 #include <cstdint>
 #include <algorithm>
 
+#include <thread>
+#include <SDL2/SDL_main.h>
 #include <SDL2/SDL_net.h>
 #include <nlohmann/json.hpp>
-#include <thread>
 
 typedef uint32_t HOOK_ID;
 

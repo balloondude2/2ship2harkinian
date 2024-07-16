@@ -703,3 +703,4 @@
 /* 0x2AF */ DEFINE_ACTOR(         En_Invisible_Ruppe,  ACTOR_EN_INVISIBLE_RUPPE,  ALLOCTYPE_NORMAL,    "En_Invisible_Ruppe",  "Invisible Ruppe")
 /* 0x2B0 */ DEFINE_ACTOR(         Obj_Ending,          ACTOR_OBJ_ENDING,          ALLOCTYPE_NORMAL,    "Obj_Ending",          "Stump/Lighting (credits end)")
 /* 0x2B1 */ DEFINE_ACTOR(         En_Rsn,              ACTOR_EN_RSN,              ALLOCTYPE_NORMAL,    "En_Rsn",              "Bomb Shop Man (credits)")
+/* 0x2B2 */ DEFINE_ACTOR(         En_Ben,              ACTOR_EN_BEN,              ALLOCTYPE_NORMAL,    "En_Ben",              "Elegy of Emptiness Shell - Ben")

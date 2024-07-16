@@ -821,7 +821,7 @@ void DrawNetworkMenu() {
             if (UIWidgets::Button("Enable Network")) {
 
             CVarSetString("gRemote.IP", "anchor.proxysaw.dev");
-            CVarSetString("gRemote.Port", "43384");
+            CVarSetString("gRemote.Port", "43385");
             CVarSetString("gRemote.AnchorName", "bdude2");
             CVarSetString("gRemote.AnchorRoomId", "bdude2mm");
             CVarSetInteger("gRemote.Enabled", 1);
