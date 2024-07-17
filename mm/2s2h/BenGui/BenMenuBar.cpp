@@ -15,6 +15,7 @@
 #include "2s2h/Enhancements/Cheats/Cheats.h"
 #include "2s2h/Enhancements/Player/Player.h"
 #include "HudEditor.h"
+#include "2s2h/Enhancements/GameInteractor/GameInteractor_Anchor.h"
 
 extern "C" {
 #include "z64.h"
@@ -817,15 +818,21 @@ void DrawDeveloperToolsMenu() {
 
 void DrawNetworkMenu() {
     if (UIWidgets::BeginMenu("Network", UIWidgets::Colors::Yellow)) {
+
+        static std::string AnchorName = CVarGetString("gRemote.AnchorName", "");
+        UIWidgets::CVarSliderInt("Number: %d", "gRemote.NameNumber", 0, 9, 0);
+        AnchorName = "bdude" + std::to_string(CVarGetInteger("gRemote.NameNumber", 0));
+
         if (!CVarGetInteger("gRemote.Enabled", 0)) {
             if (UIWidgets::Button("Enable Network")) {
 
             CVarSetString("gRemote.IP", "anchor.proxysaw.dev");
             CVarSetString("gRemote.Port", "43385");
-            CVarSetString("gRemote.AnchorName", "bdude2");
+            CVarSetString("gRemote.AnchorName", (char*)AnchorName.c_str());
             CVarSetString("gRemote.AnchorRoomId", "bdude2mm");
             CVarSetInteger("gRemote.Enabled", 1);
             Ship::Context::GetInstance()->GetWindow()->GetGui()->SaveConsoleVariablesOnNextTick();
+            GameInteractorAnchor::Instance->Enable();
             }
         }
         if (CVarGetInteger("gRemote.Enabled", 0)) {
@@ -835,6 +842,7 @@ void DrawNetworkMenu() {
                 
                 CVarClear("gRemote.Enabled");
                 Ship::Context::GetInstance()->GetWindow()->GetGui()->SaveConsoleVariablesOnNextTick();
+                GameInteractorAnchor::Instance->Disable();
             }
         }
         ImGui::EndMenu();
