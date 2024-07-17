@@ -845,6 +845,16 @@ void DrawNetworkMenu() {
                 GameInteractorAnchor::Instance->Disable();
             }
         }
+        if (UIWidgets::Button("Refresh Clients")) {
+                
+            Anchor_RefreshClientActors();
+        }
+        if (UIWidgets::Button("Send Data")) {
+                
+            Anchor_SendClientActors();
+        }
+
+            
         ImGui::EndMenu();
     }
 }
