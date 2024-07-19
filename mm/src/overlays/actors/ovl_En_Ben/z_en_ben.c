@@ -7,6 +7,8 @@
 #include "z_en_ben.h"
 #include "objects/gameplay_keep/gameplay_keep.h"
 
+#include "2s2h/Enhancements/GameInteractor/GameInteractor_Anchor.h"
+
 #define FLAGS (ACTOR_FLAG_10)
 
 #define THIS ((Ben*)thisx)
@@ -73,7 +75,7 @@ void Ben_Init(Actor* thisx, PlayState* play) {
             this->actor.flags |= ACTOR_FLAG_CAN_PRESS_HEAVY_SWITCH;
         }
     }
-    this->framesUntilNextState = 20;
+    this->framesUntilNextState = 0;
 }
 
 void Ben_Destroy(Actor* thisx, PlayState* play) {
@@ -129,6 +131,16 @@ void Ben_Update(Actor* thisx, PlayState* play) {
         }
         Math_StepToS(&this->alpha, targetAlpha, 8);
     }
+
+    if (Anchor_GetClientScene(this->actor.params - 3) == play->sceneId) {
+            PosRot playerPosRot = Anchor_GetClientPosition(this->actor.params - 3);
+            this->actor.world.pos = playerPosRot.pos;
+            this->actor.shape.rot = playerPosRot.rot;
+        } else {
+            this->actor.world.pos.x = -9999.0f;
+            this->actor.world.pos.y = -9999.0f;
+            this->actor.world.pos.z = -9999.0f;
+        }
 }
 
 void Ben_UpdateIdle(Actor* thisx, PlayState* play) {
@@ -157,7 +169,8 @@ void Ben_UpdateDeath(Actor* thisx, PlayState* play) {
 void Ben_Draw(Actor* thisx, PlayState* play2) {
     PlayState* play = play2;
     Ben* this = THIS;
-    Gfx* gfx = sShellDLists[this->actor.params];
+    u8 form = Anchor_GetClientPlayerData(this->actor.params - 3).playerForm;
+    Gfx* gfx = sShellDLists[form];
 
     OPEN_DISPS(play->state.gfxCtx);
 

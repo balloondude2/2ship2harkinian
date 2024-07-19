@@ -744,7 +744,7 @@ Color_RGB8 Anchor_GetClientColor(uint32_t actorIndex) {
 }
 
 void Anchor_RefreshClientActors() {
-    LUSLOG_DEBUG("top of refresh clients", NULL);
+    //LUSLOG_DEBUG("top of refresh clients", NULL);
     // if (!GameInteractor::IsSaveLoaded()) return;
     Actor* actor = gPlayState->actorCtx.actorLists[ACTORCAT_ITEMACTION].first;
     while (actor != NULL) {
@@ -759,96 +759,20 @@ void Anchor_RefreshClientActors() {
     uint32_t i = 0;
     for (auto [clientId, client] : GameInteractorAnchor::AnchorClients) {
         GameInteractorAnchor::ActorIndexToClientId.push_back(clientId);
-        LUSLOG_DEBUG("above spawn, playerForm: %x", client.playerData.playerForm);
+        //LUSLOG_DEBUG("above spawn, playerForm: %x", client.playerData.playerForm);
         if (Actor_Spawn(
             &gPlayState->actorCtx, gPlayState, gEnLinkPuppetId,
             client.posRot.pos.x, client.posRot.pos.y, client.posRot.pos.z, 
             client.posRot.rot.x, client.posRot.rot.y, client.posRot.rot.z,
-            client.playerData.playerForm
+            3 + i
         ) == NULL) {
-            LUSLOG_DEBUG("failed to spawn: %x", gEnLinkPuppetId);
+            //LUSLOG_DEBUG("failed to spawn: %x", gEnLinkPuppetId);
         
         }
         // Todo: This was removed in player models branch
         // NameTag_RegisterForActor(fairy, client.name.c_str());
         i++;
     }
-}
-
-void Anchor_SendClientActors() {
-    LUSLOG_DEBUG("IN new func", NULL);
-        uint32_t currentPlayerCount = 0;
-        for (auto& [clientId, client] : GameInteractorAnchor::AnchorClients) {
-            if (client.sceneNum == gPlayState->sceneId) {
-                currentPlayerCount++;
-            }
-        }
-        if (!GameInteractor::Instance->isRemoteInteractorConnected || gPlayState == NULL /* || !GameInteractor::Instance->IsSaveLoaded() */) {
-            return;
-        }
-        Player* player = GET_PLAYER(gPlayState);
-        LUSLOG_DEBUG("IN func, got player", NULL);
-        nlohmann::json payload;
-        if (currentPlayerCount == 0) return;
-
-        // gSaveContext.playerData.bootsType = player->currentBoots;
-        // gSaveContext.playerData.shieldType = player->currentShield;
-        // gSaveContext.playerData.sheathType = player->sheathType;
-        // gSaveContext.playerData.leftHandType = player->leftHandType;
-        // gSaveContext.playerData.rightHandType = player->rightHandType;
-        // gSaveContext.playerData.tunicType = player->currentTunic;
-        // gSaveContext.playerData.faceType = player->actor.shape.face;
-        // gSaveContext.playerData.biggoron_broken = gSaveContext.swordHealth <= 0 ? 1 : 0;
-        // gSaveContext.playerData.playerAge = gSaveContext.linkAge;
-        // gSaveContext.playerData.playerHealth = gSaveContext.health;
-        // gSaveContext.playerData.playerHealthCapacity = gSaveContext.healthCapacity;
-        // gSaveContext.playerData.playerMagic = gSaveContext.magic;
-        // gSaveContext.playerData.playerMagicCapacity = gSaveContext.magicCapacity;
-        // gSaveContext.playerData.isPlayerMagicAcquired = gSaveContext.isMagicAcquired;
-        // gSaveContext.playerData.isDoubleMagicAcquired = gSaveContext.isDoubleMagicAcquired;
-        // gSaveContext.playerData.strengthValue = CUR_UPG_VALUE(UPG_STRENGTH);
-        // gSaveContext.playerData.yOffset = player->actor.shape.yOffset;
-        // gSaveContext.playerData.currentMask = player->currentMask;
-        // gSaveContext.playerData.swordEquipped = gSaveContext.equips.buttonItems[0];
-        // gSaveContext.playerData.playerStateFlags1 = player->stateFlags1;
-        // gSaveContext.playerData.moveFlags = player->skelAnime.moveFlags;
-        // gSaveContext.playerData.unk_6C4 = player->unk_6C4;
-        // gSaveContext.playerData.speedXZ = player->actor.speedXZ;
-        // gSaveContext.playerData.itemAction = player->itemAction;
-        // gSaveContext.playerData.unk_85C = player->unk_85C;
-        // gSaveContext.playerData.stickWeaponTip = player->meleeWeaponInfo[0].tip;
-        // gSaveContext.playerData.unk_860 = player->unk_860;
-        // gSaveContext.playerData.unk_862 = player->unk_862;
-        PlayerData current;
-        current.playerForm = player->transformation;
-
-        payload["playerData"] = current;
-
-        payload["type"] = "CLIENT_UPDATE";
-        payload["sceneNum"] = gPlayState->sceneId;
-        payload["roomIndex"] = gPlayState->roomCtx.curRoom.num;
-        payload["entranceIndex"] = gSaveContext.save.entrance;
-
-        PosRot playerPosRot;
-        playerPosRot.pos = player->actor.world.pos;
-        playerPosRot.rot = player->actor.shape.rot;
-        payload["posRot"] = playerPosRot;
-
-        std::vector<Vec3s> jointTable = {};
-        for (int i = 0; i < 23; i++) {
-            jointTable.push_back(player->skelAnime.jointTable[i]);
-        }
-
-        payload["jointTable"] = jointTable;
-        //payload["quiet"] = true;
-
-        for (auto& [clientId, client] : GameInteractorAnchor::AnchorClients) {
-            if (client.sceneNum == gPlayState->sceneId) {
-                payload["targetClientId"] = clientId;
-                GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
-                LUSLOG_DEBUG("IN func, sent json", NULL);
-            }
-        }
 }
 
 static uint32_t lastSceneNum = SCENE_MAX;
@@ -963,8 +887,8 @@ void Anchor_RegisterHooks() {
 
     //     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
     // });
-    GameInteractor::Instance->RegisterGameHook<GameInteractor::OnGameStateMainFinish>([]() {
-        LUSLOG_DEBUG("IN Actor Update hook", NULL);
+    GameInteractor::Instance->RegisterGameHookForID<GameInteractor::OnActorUpdate>(ACTOR_PLAYER, [](Actor* actor) {
+        
         uint32_t currentPlayerCount = 0;
         for (auto& [clientId, client] : GameInteractorAnchor::AnchorClients) {
             if (client.sceneNum == gPlayState->sceneId) {
@@ -975,7 +899,7 @@ void Anchor_RegisterHooks() {
             return;
         }
         Player* player = GET_PLAYER(gPlayState);
-        LUSLOG_DEBUG("IN Actor Update hook, got player", NULL);
+        
         nlohmann::json payload;
         if (currentPlayerCount == 0) return;
 
@@ -1022,19 +946,19 @@ void Anchor_RegisterHooks() {
         playerPosRot.rot = player->actor.shape.rot;
         payload["posRot"] = playerPosRot;
 
-        std::vector<Vec3s> jointTable = {};
-        for (int i = 0; i < 23; i++) {
-            jointTable.push_back(player->skelAnime.jointTable[i]);
-        }
+        // std::vector<Vec3s> jointTable = {};
+        // for (int i = 0; i < 23; i++) {
+        //     jointTable.push_back(player->skelAnime.jointTable[i]);
+        // }
 
-        payload["jointTable"] = jointTable;
-        //payload["quiet"] = true;
+        // payload["jointTable"] = jointTable;
+        payload["quiet"] = true;
 
         for (auto& [clientId, client] : GameInteractorAnchor::AnchorClients) {
             if (client.sceneNum == gPlayState->sceneId) {
                 payload["targetClientId"] = clientId;
                 GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
-                LUSLOG_DEBUG("IN Actor Update hook, sent json", NULL);
+                //LUSLOG_DEBUG("IN Actor Update hook, sent json", NULL);
             }
         }
 

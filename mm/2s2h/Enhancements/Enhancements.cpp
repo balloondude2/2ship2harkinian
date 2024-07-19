@@ -59,4 +59,6 @@ void InitEnhancements() {
     // Modes
     RegisterPlayAsKafei();
     RegisterTimeMovesWhenYouMove();
+
+    //Anchor_RegisterHooks();
 }

@@ -29,6 +29,7 @@
 #include "Saving/SavingEnhancements.h"
 #include "Graphics/DisableBlackBars.h"
 #include "Modes/TimeMovesWhenYouMove.h"
+//#include "GameInteractor/GameInteractor_Anchor.h"
 
 enum AlwaysWinDoggyRaceOptions {
     ALWAYS_WIN_DOGGY_RACE_OFF,

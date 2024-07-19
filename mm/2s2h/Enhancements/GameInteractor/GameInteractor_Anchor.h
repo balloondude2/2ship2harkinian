@@ -7,11 +7,6 @@
 #include "./GameInteractor.h"
 
 typedef struct {
-    u8 playerForm;
-} PlayerData;
-
-
-typedef struct {
     uint32_t clientId;
     std::string clientVersion;
     std::string name;

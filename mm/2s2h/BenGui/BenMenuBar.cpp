@@ -833,6 +833,7 @@ void DrawNetworkMenu() {
             CVarSetInteger("gRemote.Enabled", 1);
             Ship::Context::GetInstance()->GetWindow()->GetGui()->SaveConsoleVariablesOnNextTick();
             GameInteractorAnchor::Instance->Enable();
+            Anchor_RegisterHooks();
             }
         }
         if (CVarGetInteger("gRemote.Enabled", 0)) {
@@ -847,12 +848,9 @@ void DrawNetworkMenu() {
         }
         if (UIWidgets::Button("Refresh Clients")) {
                 
-            Anchor_RefreshClientActors();
-        }
-        if (UIWidgets::Button("Send Data")) {
-                
-            Anchor_SendClientActors();
-        }
+                Anchor_RefreshClientActors();
+            }
+
 
             
         ImGui::EndMenu();
