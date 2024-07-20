@@ -133,14 +133,14 @@ void Ben_Update(Actor* thisx, PlayState* play) {
     }
 
     if (Anchor_GetClientScene(this->actor.params - 3) == play->sceneId) {
-            PosRot playerPosRot = Anchor_GetClientPosition(this->actor.params - 3);
-            this->actor.world.pos = playerPosRot.pos;
-            this->actor.shape.rot = playerPosRot.rot;
-        } else {
-            this->actor.world.pos.x = -9999.0f;
-            this->actor.world.pos.y = -9999.0f;
-            this->actor.world.pos.z = -9999.0f;
-        }
+        PosRot playerPosRot = Anchor_GetClientPosition(this->actor.params - 3);
+        this->actor.world.pos = playerPosRot.pos;
+        this->actor.shape.rot = playerPosRot.rot;
+    } else {
+        this->actor.world.pos.x = -9999.0f;
+        this->actor.world.pos.y = -9999.0f;
+        this->actor.world.pos.z = -9999.0f;
+    }
 }
 
 void Ben_UpdateIdle(Actor* thisx, PlayState* play) {

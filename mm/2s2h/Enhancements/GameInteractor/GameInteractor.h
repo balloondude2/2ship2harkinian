@@ -89,7 +89,7 @@ typedef uint32_t HOOK_ID;
     }
 
 class GameInteractor {
-  private: 
+  private:
     IPaddress remoteIP;
     TCPsocket remoteSocket;
     std::thread remoteThreadReceive;
@@ -325,6 +325,8 @@ class GameInteractor {
     DEFINE_HOOK(OnItemGive, (u8 item));
 
     DEFINE_HOOK(ShouldVanillaBehavior, (GIVanillaBehavior flag, bool* should, void* optionalArg));
+
+    static bool IsSaveLoaded();
 };
 
 extern "C" {

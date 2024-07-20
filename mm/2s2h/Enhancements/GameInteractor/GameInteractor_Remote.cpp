@@ -16,7 +16,8 @@ void GameInteractor::EnableRemoteInteractor() {
         return;
     }
 
-    if (SDLNet_ResolveHost(&remoteIP, CVarGetString("gRemote.IP", "127.0.0.1"), CVarGetInteger("gRemote.Port", 43384)) == -1) {
+    if (SDLNet_ResolveHost(&remoteIP, CVarGetString("gRemote.IP", "127.0.0.1"),
+                           CVarGetInteger("gRemote.Port", 43384)) == -1) {
         SPDLOG_ERROR("[GameInteractor] SDLNet_ResolveHost: {}", SDLNet_GetError());
     }
 
@@ -32,8 +33,8 @@ void GameInteractor::EnableRemoteInteractor() {
 
 /**
  * Raw data handler, currently used by CrowdControl
- * 
- * If you are developing a new remote, you should probably use the json methods instead. This 
+ *
+ * If you are developing a new remote, you should probably use the json methods instead. This
  * method requires you to parse the data and ensure packets are complete manually, we cannot
  * gaurentee that the data will be complete, or that it will only contain one packet with this
  */
@@ -43,7 +44,7 @@ void GameInteractor::RegisterRemoteDataHandler(std::function<void(char payload[5
 
 /**
  * Json handler
- * 
+ *
  * This method will be called when a complete json packet is received. All json packets must
  * be delimited by a newline character (\n).
  */
@@ -180,4 +181,3 @@ void GameInteractor::HandleRemoteJson(std::string payload) {
         return;
     }
 }
-

@@ -1,4 +1,7 @@
 
+// TODOs: send and receive flags/items; mabye update ben overlay; clean up organization (move json to jsonConversions
+// file)
+
 #include "GameInteractor_Anchor.h"
 #include <libultraship/libultraship.h>
 //#include <soh/Enhancements/item-tables/ItemTableManager.h>
@@ -8,7 +11,7 @@
 //#include <soh/util.h>
 #include <nlohmann/json.hpp>
 #include "2s2h/BenJsonConversions.hpp"
-//mm\2s2h\BenJsonConversions.hpp
+// mm\2s2h\BenJsonConversions.hpp
 
 extern "C" {
 #include <variables.h>
@@ -16,7 +19,7 @@ extern "C" {
 #include "z64scene.h"
 #include "z64actor.h"
 #include "functions.h"
-//extern "C" s16 gEnLinkPuppetId;
+// extern "C" s16 gEnLinkPuppetId;
 extern PlayState* gPlayState;
 extern SaveContext gSaveContext;
 }
@@ -32,11 +35,7 @@ void from_json(const json& j, Color_RGB8& color) {
 }
 
 void to_json(json& j, const Color_RGB8& color) {
-    j = json{
-        {"r", color.r},
-        {"g", color.g},
-        {"b", color.b}
-    };
+    j = json{ { "r", color.r }, { "g", color.g }, { "b", color.b } };
 }
 
 void from_json(const json& j, PlayerData& playerData) {
@@ -69,15 +68,10 @@ void to_json(json& j, const PlayerData& playerData) {
         // { "damageEffect", playerData.damageEffect },
         // { "damageValue", playerData.damageValue },
     };
-
 }
 
 void to_json(json& j, const Vec3f& vec) {
-    j = json{
-        {"x", vec.x},
-        {"y", vec.y},
-        {"z", vec.z}
-    };
+    j = json{ { "x", vec.x }, { "y", vec.y }, { "z", vec.z } };
 }
 
 // void to_json(json& j, const Vec3s& vec) {
@@ -101,9 +95,9 @@ void from_json(const json& j, Vec3f& vec) {
 // }
 
 void to_json(json& j, const PosRot& posRot) {
-    j = json {
-        {"pos", posRot.pos},
-        {"rot", posRot.rot},
+    j = json{
+        { "pos", posRot.pos },
+        { "rot", posRot.rot },
     };
 }
 
@@ -116,7 +110,7 @@ void from_json(const json& j, AnchorClient& client) {
     j.contains("clientId") ? j.at("clientId").get_to(client.clientId) : client.clientId = 0;
     j.contains("clientVersion") ? j.at("clientVersion").get_to(client.clientVersion) : client.clientVersion = "???";
     j.contains("name") ? j.at("name").get_to(client.name) : client.name = "???";
-    j.contains("color") ? j.at("color").get_to(client.color) : client.color = {255, 255, 255};
+    j.contains("color") ? j.at("color").get_to(client.color) : client.color = { 255, 255, 255 };
     j.contains("seed") ? j.at("seed").get_to(client.seed) : client.seed = 0;
     j.contains("fileNum") ? j.at("fileNum").get_to(client.fileNum) : client.fileNum = 0xFF;
     j.contains("gameComplete") ? j.at("gameComplete").get_to(client.gameComplete) : client.gameComplete = false;
@@ -196,7 +190,8 @@ void from_json(const json& j, AnchorClient& client) {
 
 // // void from_json(const json& j, SohStats& sohStats) {
 // //     j.at("locationsSkipped").get_to(sohStats.locationsSkipped);
-// //     j.contains("fileCreatedAt") ? j.at("fileCreatedAt").get_to(sohStats.fileCreatedAt) : gSaveContext.sohStats.fileCreatedAt;
+// //     j.contains("fileCreatedAt") ? j.at("fileCreatedAt").get_to(sohStats.fileCreatedAt) :
+// gSaveContext.sohStats.fileCreatedAt;
 // // }
 
 // void to_json(json& j, const SavePlayerData& savePlayerData) {
@@ -241,30 +236,255 @@ void from_json(const json& j, AnchorClient& client) {
 //     //j.at("adultTradeItems").get_to(savePlayerData.adultTradeItems);
 // }
 
+std::vector<std::string> sceneNames = {
+    /* 0x00 */ "Southern Swamp (Clear)",
+    /* 0x01 */ "0x01",
+    /* 0x02 */ "0x02",
+    /* 0x03 */ "0x03",
+    /* 0x04 */ "0x04",
+    /* 0x05 */ "0x05",
+    /* 0x06 */ "0x06",
+    // Lone Peak Shrine & Grottos
+    /* 0x07 */ "Lone Peak Shrine & Grottos",
+    // Cutscene Scene
+    /* 0x08 */ "Cutscene Scene",
+    /* 0x09 */ "0x09",
+    // Magic Hags' Potion Shop
+    /* 0x0A */ "Magic Hags' Potion Shop",
+    // Majora's Lair
+    /* 0x0B */ "Majora's Lair",
+    // Beneath the Graveyard
+    /* 0x0C */ "Beneath the Graveyard",
+    // Curiosity Shop
+    /* 0x0D */ "Curiosity Shop",
+    /* 0x0E */ "0x0E",
+    /* 0x0F */ "0x0F",
+    // Mama's House (Ranch House in PAL) & Barn
+    /* 0x10 */ "Mama's House & Barn",
+    // Honey & Darling's Shop
+    /* 0x11 */ "Honey & Darling's Shop",
+    // The Mayor's Residence
+    /* 0x12 */ "The Mayor's Residence",
+    // Ikana Canyon
+    /* 0x13 */ "Ikana Canyon",
+    // Pirates' Fortress
+    /* 0x14 */ "Pirates' Fortress",
+    // Milk Bar
+    /* 0x15 */ "Milk Bar",
+    // Stone Tower Temple
+    /* 0x16 */ "Stone Tower Temple",
+    // Treasure Chest Shop
+    /* 0x17 */ "Treasure Chest Shop",
+    // Inverted Stone Tower Temple
+    /* 0x18 */ "Inverted Stone Tower Temple",
+    // Clock Tower Rooftop
+    /* 0x19 */ "Clock Tower Rooftop",
+    // Before Clock Town
+    /* 0x1A */ "Before Clock Town",
+    // Woodfall Temple
+    /* 0x1B */ "Woodfall Temple",
+    // Path to Mountain Village
+    /* 0x1C */ "Path to Mountain Village",
+    // Ancient Castle of Ikana
+    /* 0x1D */ "Ancient Castle of Ikana",
+    // Deku Scrub Playground
+    /* 0x1E */ "Deku Scrub Playground",
+    // Odolwa's Lair
+    /* 0x1F */ "Odolwa's Lair",
+    // Town Shooting Gallery
+    /* 0x20 */ "Town Shooting Gallery",
+    // Snowhead Temple
+    /* 0x21 */ "Snowhead Temple",
+    // Milk Road
+    /* 0x22 */ "Milk Road",
+    // Pirates' Fortress Interior
+    /* 0x23 */ "Pirates' Fortress Interior",
+    // Swamp Shooting Gallery
+    /* 0x24 */ "Swamp Shooting Gallery",
+    // Pinnacle Rock
+    /* 0x25 */ "Pinnacle Rock",
+    // Fairy's Fountain
+    /* 0x26 */ "Fairy's Fountain",
+    // Swamp Spider House
+    /* 0x27 */ "Swamp Spider House",
+    // Oceanside Spider House
+    /* 0x28 */ "Oceanside Spider House",
+    // Astral Observatory
+    /* 0x29 */ "Astral Observatory",
+    // Moon Deku Trial
+    /* 0x2A */ "Moon Deku Trial",
+    // Deku Palace
+    /* 0x2B */ "Deku Palace",
+    // Mountain Smithy
+    /* 0x2C */ "Mountain Smithy",
+    // Termina Field
+    /* 0x2D */ "Termina Field",
+    // Post Office
+    /* 0x2E */ "Post Office",
+    // Marine Research Lab
+    /* 0x2F */ "Marine Research Lab",
+    // Beneath the Graveyard (Day 3) and Dampe's House
+    /* 0x30 */ "Beneath Graveyard and Dampe's House",
+    /* 0x31 */ "0x31",
+    // Goron Shrine
+    /* 0x32 */ "Goron Shrine",
+    // Zora Hall
+    /* 0x33 */ "Zora Hall",
+    // Trading Post
+    /* 0x34 */ "Trading Post",
+    // Romani Ranch
+    /* 0x35 */ "Romani Ranch",
+    // Twinmold's Lair
+    /* 0x36 */ "Twinmold's Lair",
+    // Great Bay Coast
+    /* 0x37 */ "Great Bay Coast",
+    // Zora Cape
+    /* 0x38 */ "Zora Cape",
+    // Lottery Shop
+    /* 0x39 */ "Lottery Shop",
+    /* 0x3A */ "0x3A",
+    // Pirates' Fortress Moat
+    /* 0x3B */ "Pirates' Fortress Moat",
+    // Fisherman's Hut
+    /* 0x3C */ "Fisherman's Hut",
+    // Goron Shop
+    /* 0x3D */ "Goron Shop",
+    // Deku King's Chamber
+    /* 0x3E */ "Deku King's Chamber",
+    // Moon Goron Trial
+    /* 0x3F */ "Moon Goron Trial",
+    // Road to Southern Swamp
+    /* 0x40 */ "Road to Southern Swamp",
+    // Doggy Racetrack
+    /* 0x41 */ "Doggy Racetrack",
+    // Cucco Shack
+    /* 0x42 */ "Cucco Shack",
+    // Ikana Graveyard
+    /* 0x43 */ "Ikana Graveyard",
+    // Goht's Lair
+    /* 0x44 */ "Goht's Lair",
+    // Southern Swamp (poison)
+    /* 0x45 */ "Southern Swamp (poison)",
+    // Woodfall
+    /* 0x46 */ "Woodfall",
+    // Moon Zora Trial
+    /* 0x47 */ "Moon Zora Trial",
+    // Goron Village (spring)
+    /* 0x48 */ "Goron Village (spring)",
+    // Great Bay Temple
+    /* 0x49 */ "Great Bay Temple",
+    // Waterfall Rapids
+    /* 0x4A */ "Waterfall Rapids",
+    // Beneath the Well
+    /* 0x4B */ "Beneath the Well",
+    // Zora Hall Rooms
+    /* 0x4C */ "Zora Hall Rooms",
+    // Goron Village (winter)
+    /* 0x4D */ "Goron Village (winter)",
+    // Goron Graveyard
+    /* 0x4E */ "Goron Graveyard",
+    // Sakon's Hideout
+    /* 0x4F */ "Sakon's Hideout",
+    // Mountain Village (winter)
+    /* 0x50 */ "Mountain Village (winter)",
+    // Ghost Hut
+    /* 0x51 */ "Ghost Hut",
+    // Deku Shrine
+    /* 0x52 */ "Deku Shrine",
+    // Road to Ikana
+    /* 0x53 */ "Road to Ikana",
+    // Swordsman's School
+    /* 0x54 */ "Swordsman's School",
+    // Music Box House
+    /* 0x55 */ "Music Box House",
+    // Igos du Ikana's Lair
+    /* 0x56 */ "Igos du Ikana's Lair",
+    // Tourist Information
+    /* 0x57 */ "Tourist Information",
+    // Stone Tower
+    /* 0x58 */ "Stone Tower",
+    // Inverted Stone Tower
+    /* 0x59 */ "Inverted Stone Tower",
+    // Mountain Village (spring)
+    /* 0x5A */ "Mountain Village (spring)",
+    // Path to Snowhead
+    /* 0x5B */ "Path to Snowhead",
+    // Snowhead
+    /* 0x5C */ "Snowhead",
+    // Path to Goron Village (winter)
+    /* 0x5D */ "Path to Goron Village (winter)",
+    // Path to Goron Village (spring)
+    /* 0x5E */ "Path to Goron Village (spring)",
+    // Gyorg's Lair
+    /* 0x5F */ "Gyorg's Lair",
+    // Secret Shrine
+    /* 0x60 */ "Secret Shrine",
+    // Stock Pot Inn
+    /* 0x61 */ "Stock Pot Inn",
+    // Great Bay Cutscene
+    /* 0x62 */ "Great Bay Cutscene",
+    // Clock Tower Interior
+    /* 0x63 */ "Clock Tower Interior",
+    // Woods of Mystery
+    /* 0x64 */ "Woods of Mystery",
+    // Lost Woods (Intro)
+    /* 0x65 */ "Lost Woods (Intro)",
+    // Moon Link Trial
+    /* 0x66 */ "Moon Link Trial",
+    // The Moon
+    /* 0x67 */ "The Moon",
+    // Bomb Shop
+    /* 0x68 */ "Bomb Shop",
+    // Giants' Chamber
+    /* 0x69 */ "Giants' Chamber",
+    // Gorman Track
+    /* 0x6A */ "Gorman Track",
+    // Goron Racetrack
+    /* 0x6B */ "Goron Racetrack",
+    // East Clock Town
+    /* 0x6C */ "East Clock Town",
+    // West Clock Town
+    /* 0x6D */ "West Clock Town",
+    // North Clock Town
+    /* 0x6E */ "North Clock Town",
+    // South Clock Town
+    /* 0x6F */ "South Clock Town",
+    // Laundry Pool
+    /* 0x70 */ "Laundry Pool",
+
+};
+
+const std::string& GetSceneName(uint8_t scene) {
+    return sceneNames[scene];
+}
+
 std::map<uint32_t, AnchorClient> GameInteractorAnchor::AnchorClients = {};
 std::vector<uint32_t> GameInteractorAnchor::ActorIndexToClientId = {};
-std::string GameInteractorAnchor::clientVersion = "MM Anchor + Statues";
+std::string GameInteractorAnchor::clientVersion = "MM Anchor + Statues Alpha";
 std::vector<std::pair<uint16_t, int16_t>> receivedItems = {};
-// std::vector<AnchorMessage> anchorMessages = {};
-// uint32_t notificationId = 0;
+std::vector<AnchorMessage> anchorMessages = {};
+uint32_t notificationId = 0;
 
-// void Anchor_DisplayMessage(AnchorMessage message = {}) {
-//     message.id = notificationId++;
-//     anchorMessages.push_back(message);
-// }
+void Anchor_DisplayMessage(AnchorMessage message = {}) {
+    message.id = notificationId++;
+    anchorMessages.push_back(message);
+}
 
 void Anchor_SendClientData() {
-       nlohmann::json payload;
+    nlohmann::json payload;
     payload["data"]["name"] = CVarGetString("gRemote.AnchorName", "");
     payload["data"]["color"] = CVarGetColor24("gRemote.AnchorColor", { 100, 255, 100 });
     payload["data"]["clientVersion"] = GameInteractorAnchor::clientVersion;
     payload["type"] = "UPDATE_CLIENT_DATA";
 
+    // TODO: Doesn't crash when Anchor is enabled at start, but needs reconnect to work. Maybe call this function on
+    // game load
+    if (GameInteractor::IsSaveLoaded()) {
+        payload["data"]["fileNum"] = gSaveContext.fileNum;
+        payload["data"]["sceneNum"] = gPlayState->sceneId;
+        payload["data"]["entranceIndex"] = gSaveContext.save.entrance;
+    }
 
-    payload["data"]["fileNum"] = gSaveContext.fileNum;
-    payload["data"]["sceneNum"] = gPlayState->sceneId;
-    payload["data"]["entranceIndex"] = gSaveContext.save.entrance;
-    
     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
 }
 
@@ -280,21 +500,18 @@ void GameInteractorAnchor::Enable() {
             HandleRemoteJson(payload);
         } catch (const std::exception& e) {
             SPDLOG_ERROR("[Anchor] Error handling remote JSON: {}", e.what());
-        } catch (...) {
-            SPDLOG_ERROR("[Anchor] Unknown Error handling remote JSON");
-        }
+        } catch (...) { SPDLOG_ERROR("[Anchor] Unknown Error handling remote JSON"); }
     });
     GameInteractor::Instance->RegisterRemoteConnectedHandler([&]() {
-        // Anchor_DisplayMessage({ .message = "Connected to Anchor" });
+        Anchor_DisplayMessage({ .message = "Connected to Anchor" });
         Anchor_SendClientData();
 
-        // if (GameInteractor::IsSaveLoaded()) {
+        if (GameInteractor::IsSaveLoaded()) {
             Anchor_RequestSaveStateFromRemote();
-        // }
+        }
     });
-    GameInteractor::Instance->RegisterRemoteDisconnectedHandler([&]() {
-        // Anchor_DisplayMessage({ .message = "Disconnected from Anchor" });
-    });
+    GameInteractor::Instance->RegisterRemoteDisconnectedHandler(
+        [&]() { Anchor_DisplayMessage({ .message = "Disconnected from Anchor" }); });
 }
 
 void GameInteractorAnchor::Disable() {
@@ -333,7 +550,8 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
     if ((payload["type"] != "ALL_CLIENT_DATA" && payload["type"] != "UPDATE_CLIENT_DATA")) {
         if (payload.contains("clientId")) {
             uint32_t clientId = payload["clientId"].get<uint32_t>();
-            if (GameInteractorAnchor::AnchorClients.contains(clientId) && GameInteractorAnchor::AnchorClients[clientId].clientVersion != GameInteractorAnchor::clientVersion) {
+            if (GameInteractorAnchor::AnchorClients.contains(clientId) &&
+                GameInteractorAnchor::AnchorClients[clientId].clientVersion != GameInteractorAnchor::clientVersion) {
                 return;
             }
         }
@@ -346,7 +564,8 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
     //     CVarSetInteger("gFromGI", 1);
     //     receivedItems.push_back({ payload["modId"].get<uint16_t>(), payload["getItemId"].get<int16_t>() });
     //     if (effect->Apply() == Possible) {
-    //         GetItemEntry getItemEntry = ItemTableManager::Instance->RetrieveItemEntry(effect->parameters[0], effect->parameters[1]);
+    //         GetItemEntry getItemEntry = ItemTableManager::Instance->RetrieveItemEntry(effect->parameters[0],
+    //         effect->parameters[1]);
 
     //         AnchorClient anchorClient = GameInteractorAnchor::AnchorClients[payload["clientId"].get<uint32_t>()];
     //         if (getItemEntry.getItemCategory != ITEM_CATEGORY_JUNK) {
@@ -359,8 +578,10 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
     //                 });
     //             } else if (getItemEntry.modIndex == MOD_RANDOMIZER) {
     //                 Anchor_DisplayMessage({
-    //                     .itemIcon = SohUtils::GetIconNameFromItemID(SohUtils::GetItemIdIconFromRandomizerGet(getItemEntry.getItemId)),
-    //                     .prefix = OTRGlobals::Instance->gRandomizer->EnumToSpoilerfileGetName[(RandomizerGet)getItemEntry.getItemId][gSaveContext.language],
+    //                     .itemIcon =
+    //                     SohUtils::GetIconNameFromItemID(SohUtils::GetItemIdIconFromRandomizerGet(getItemEntry.getItemId)),
+    //                     .prefix =
+    //                     OTRGlobals::Instance->gRandomizer->EnumToSpoilerfileGetName[(RandomizerGet)getItemEntry.getItemId][gSaveContext.language],
     //                     .message = "from",
     //                     .suffix = anchorClient.name
     //                 });
@@ -384,7 +605,7 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
 
     //     // If mweep flag replace ruto's letter
     //     if (
-    //         payload["flagType"].get<int16_t>() == FLAG_EVENT_CHECK_INF && 
+    //         payload["flagType"].get<int16_t>() == FLAG_EVENT_CHECK_INF &&
     //         payload["flag"].get<int16_t>() == EVENTCHKINF_KING_ZORA_MOVED &&
     //         Inventory_HasSpecificBottle(ITEM_LETTER_RUTO)
     //     ) {
@@ -431,8 +652,8 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
     //             GET_PLAYER(gPlayState)->invincibilityTimer = 18;
     //             GET_PLAYER(gPlayState)->actor.freezeTimer = 0;
     //         } else if (payload["damageEffect"] == PUPPET_DMGEFF_KNOCKBACK) {
-    //             func_8002F71C(gPlayState, &GET_PLAYER(gPlayState)->actor, 100.0f * 0.04f + 4.0f, GET_PLAYER(gPlayState)->actor.world.rot.y, 8.0f);
-    //             GET_PLAYER(gPlayState)->invincibilityTimer = 28;
+    //             func_8002F71C(gPlayState, &GET_PLAYER(gPlayState)->actor, 100.0f * 0.04f + 4.0f,
+    //             GET_PLAYER(gPlayState)->actor.world.rot.y, 8.0f); GET_PLAYER(gPlayState)->invincibilityTimer = 28;
     //             GET_PLAYER(gPlayState)->actor.freezeTimer = 0;
     //         } else if (payload["damageEffect"] == PUPPET_DMGEFF_STUN) {
     //             GET_PLAYER(gPlayState)->actor.freezeTimer = 20;
@@ -445,8 +666,10 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
 
         if (GameInteractorAnchor::AnchorClients.contains(clientId)) {
             GameInteractorAnchor::AnchorClients[clientId].sceneNum = payload["sceneNum"].get<int16_t>();
-            GameInteractorAnchor::AnchorClients[clientId].roomIndex = payload.contains("roomIndex") ? payload.at("roomIndex").get<int16_t>() : 0;
-            GameInteractorAnchor::AnchorClients[clientId].entranceIndex = payload.contains("entranceIndex") ? payload.at("entranceIndex").get<int16_t>() : 0;
+            GameInteractorAnchor::AnchorClients[clientId].roomIndex =
+                payload.contains("roomIndex") ? payload.at("roomIndex").get<int16_t>() : 0;
+            GameInteractorAnchor::AnchorClients[clientId].entranceIndex =
+                payload.contains("entranceIndex") ? payload.at("entranceIndex").get<int16_t>() : 0;
             GameInteractorAnchor::AnchorClients[clientId].posRot = payload["posRot"].get<PosRot>();
             if (payload.contains("playerData")) {
                 GameInteractorAnchor::AnchorClients[clientId].playerData = payload["playerData"].get<PlayerData>();
@@ -486,27 +709,24 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
                     { 0 },
                     {},
                 };
-                // Anchor_DisplayMessage({
-                //     .prefix = client.name,
-                //     .prefixColor = ImVec4(1.0f, 0.5f, 0.5f, 1.0f),
-                //     .message = "connected"
-                // });
+                Anchor_DisplayMessage(
+                    { .prefix = client.name, .prefixColor = ImVec4(1.0f, 0.5f, 0.5f, 1.0f), .message = "connected" });
             }
         }
 
         // remove clients that are no longer in the list
         std::vector<uint32_t> clientsToRemove;
         for (auto& [clientId, client] : GameInteractorAnchor::AnchorClients) {
-            if (std::find_if(newClients.begin(), newClients.end(), [clientId = clientId](AnchorClient& c) { return c.clientId == clientId; }) == newClients.end()) {
+            if (std::find_if(newClients.begin(), newClients.end(), [clientId = clientId](AnchorClient& c) {
+                    return c.clientId == clientId;
+                }) == newClients.end()) {
                 clientsToRemove.push_back(clientId);
             }
         }
         for (auto& clientId : clientsToRemove) {
-            // Anchor_DisplayMessage({
-            //     .prefix = GameInteractorAnchor::AnchorClients[clientId].name,
-            //     .prefixColor = ImVec4(1.0f, 0.5f, 0.5f, 1.0f),
-            //     .message = "disconnected"
-            // });
+            Anchor_DisplayMessage({ .prefix = GameInteractorAnchor::AnchorClients[clientId].name,
+                                    .prefixColor = ImVec4(1.0f, 0.5f, 0.5f, 1.0f),
+                                    .message = "disconnected" });
             GameInteractorAnchor::AnchorClients.erase(clientId);
         }
 
@@ -545,13 +765,14 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
     // if (payload["type"] == "CONSUME_ADULT_TRADE_ITEM" && GameInteractor::IsSaveLoaded()) {
     //     uint8_t itemId = payload["itemId"].get<uint8_t>();
     //     gSaveContext.adultTradeItems &= ~ADULT_TRADE_FLAG(itemId);
-	//     Inventory_ReplaceItem(gPlayState, itemId, Randomizer_GetNextAdultTradeItem());
+    //     Inventory_ReplaceItem(gPlayState, itemId, Randomizer_GetNextAdultTradeItem());
     // }
     // if (payload["type"] == "UPDATE_KEY_COUNT" && GameInteractor::IsSaveLoaded()) {
     //     gSaveContext.inventory.dungeonKeys[payload["sceneNum"].get<int16_t>()] = payload["amount"].get<int8_t>();
     // }
     // if (payload["type"] == "GIVE_DUNGEON_ITEM" && GameInteractor::IsSaveLoaded()) {
-    //     gSaveContext.inventory.dungeonItems[payload["sceneNum"].get<int16_t>()] |= gBitFlags[payload["itemId"].get<uint16_t>() - ITEM_KEY_BOSS];
+    //     gSaveContext.inventory.dungeonItems[payload["sceneNum"].get<int16_t>()] |=
+    //     gBitFlags[payload["itemId"].get<uint16_t>() - ITEM_KEY_BOSS];
     // }
     // if (payload["type"] == "GAME_COMPLETE") {
     //     AnchorClient anchorClient = GameInteractorAnchor::AnchorClients[payload["clientId"].get<uint32_t>()];
@@ -568,8 +789,8 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
     //     uint32_t roomIndex = payload["roomIndex"].get<uint32_t>();
     //     PosRot posRot = payload["posRot"].get<PosRot>();
 
-    //     Play_SetRespawnData(gPlayState, RESPAWN_MODE_DOWN, entranceIndex, roomIndex, 0xDFF, &posRot.pos, posRot.rot.y);
-    //     Play_TriggerVoidOut(gPlayState);
+    //     Play_SetRespawnData(gPlayState, RESPAWN_MODE_DOWN, entranceIndex, roomIndex, 0xDFF, &posRot.pos,
+    //     posRot.rot.y); Play_TriggerVoidOut(gPlayState);
     // }
     // if (payload["type"] == "SERVER_MESSAGE") {
     //     Anchor_DisplayMessage({
@@ -606,7 +827,7 @@ void Anchor_RequestSaveStateFromRemote() {
     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
 }
 
-void Anchor_ParseSaveStateFromRemote(nlohmann::json payload) {
+void Anchor_ParseSaveStateFromRemote(nlohmann::json payload){
     // SaveContext loadedData = payload.get<SaveContext>();
 
     // gSaveContext.healthCapacity = loadedData.healthCapacity;
@@ -667,7 +888,8 @@ void Anchor_ParseSaveStateFromRemote(nlohmann::json payload) {
 
     // // Restore bottle contents (unless it's ruto's letter)
     // for (int i = 0; i < 4; i++) {
-    //     if (gSaveContext.inventory.items[SLOT_BOTTLE_1 + i] != ITEM_NONE && gSaveContext.inventory.items[SLOT_BOTTLE_1 + i] != ITEM_LETTER_RUTO) {
+    //     if (gSaveContext.inventory.items[SLOT_BOTTLE_1 + i] != ITEM_NONE &&
+    //     gSaveContext.inventory.items[SLOT_BOTTLE_1 + i] != ITEM_LETTER_RUTO) {
     //         loadedData.inventory.items[SLOT_BOTTLE_1 + i] = gSaveContext.inventory.items[SLOT_BOTTLE_1 + i];
     //     }
     // }
@@ -696,56 +918,63 @@ AnchorClient* Anchor_GetClientByActorIndex(uint32_t actorIndex) {
 
 uint8_t Anchor_GetClientScene(uint32_t actorIndex) {
     AnchorClient* client = Anchor_GetClientByActorIndex(actorIndex);
-    if (client == nullptr) return SCENE_MAX;
+    if (client == nullptr)
+        return SCENE_MAX;
 
     return client->sceneNum;
 }
 
 PosRot Anchor_GetClientPosition(uint32_t actorIndex) {
     AnchorClient* client = Anchor_GetClientByActorIndex(actorIndex);
-    if (client == nullptr) return { -9999.0, -9999.0, -9999.0, 0, 0, 0 };
+    if (client == nullptr)
+        return { -9999.0, -9999.0, -9999.0, 0, 0, 0 };
 
     return client->posRot;
 }
 
 PlayerData Anchor_GetClientPlayerData(uint32_t actorIndex) {
     AnchorClient* client = Anchor_GetClientByActorIndex(actorIndex);
-    if (client == nullptr) return { 0 };
+    if (client == nullptr)
+        return { 0 };
 
     return client->playerData;
 }
 
 Vec3s* Anchor_GetClientJointTable(uint32_t actorIndex) {
     AnchorClient* client = Anchor_GetClientByActorIndex(actorIndex);
-    if (client == nullptr) return {};
+    if (client == nullptr)
+        return {};
 
     return client->jointTable;
 }
 
 const char* Anchor_GetClientName(uint32_t actorIndex) {
     AnchorClient* client = Anchor_GetClientByActorIndex(actorIndex);
-    if (client == nullptr) return "";
+    if (client == nullptr)
+        return "";
 
     return client->name.c_str();
 }
 
 uint8_t Anchor_GetClientRoomIndex(uint32_t actorIndex) {
     AnchorClient* client = Anchor_GetClientByActorIndex(actorIndex);
-    if (client == nullptr) return 0xFF;
+    if (client == nullptr)
+        return 0xFF;
 
     return client->roomIndex;
 }
 
 Color_RGB8 Anchor_GetClientColor(uint32_t actorIndex) {
     AnchorClient* client = Anchor_GetClientByActorIndex(actorIndex);
-    if (client == nullptr) return { 100, 255, 100 };
+    if (client == nullptr)
+        return { 100, 255, 100 };
 
     return client->color;
 }
 
 void Anchor_RefreshClientActors() {
-    //LUSLOG_DEBUG("top of refresh clients", NULL);
-    // if (!GameInteractor::IsSaveLoaded()) return;
+    if (!GameInteractor::IsSaveLoaded())
+        return;
     Actor* actor = gPlayState->actorCtx.actorLists[ACTORCAT_ITEMACTION].first;
     while (actor != NULL) {
         if (gEnLinkPuppetId == actor->id) {
@@ -759,16 +988,9 @@ void Anchor_RefreshClientActors() {
     uint32_t i = 0;
     for (auto [clientId, client] : GameInteractorAnchor::AnchorClients) {
         GameInteractorAnchor::ActorIndexToClientId.push_back(clientId);
-        //LUSLOG_DEBUG("above spawn, playerForm: %x", client.playerData.playerForm);
-        if (Actor_Spawn(
-            &gPlayState->actorCtx, gPlayState, gEnLinkPuppetId,
-            client.posRot.pos.x, client.posRot.pos.y, client.posRot.pos.z, 
-            client.posRot.rot.x, client.posRot.rot.y, client.posRot.rot.z,
-            3 + i
-        ) == NULL) {
-            //LUSLOG_DEBUG("failed to spawn: %x", gEnLinkPuppetId);
-        
-        }
+        if (Actor_Spawn(&gPlayState->actorCtx, gPlayState, gEnLinkPuppetId, client.posRot.pos.x, client.posRot.pos.y,
+                        client.posRot.pos.z, client.posRot.rot.x, client.posRot.rot.y, client.posRot.rot.z,
+                        3 + i) == NULL) {}
         // Todo: This was removed in player models branch
         // NameTag_RegisterForActor(fairy, client.name.c_str());
         i++;
@@ -778,22 +1000,24 @@ void Anchor_RefreshClientActors() {
 static uint32_t lastSceneNum = SCENE_MAX;
 
 void Anchor_RegisterHooks() {
+    // TODO: Might need to change this hook to be after scene commands
     GameInteractor::Instance->RegisterGameHook<GameInteractor::OnSceneInit>([](s16 sceneId, s8 spawnNum) {
-        if (gPlayState == NULL || !GameInteractor::Instance->isRemoteInteractorConnected) return;
+        if (gPlayState == NULL || !GameInteractor::Instance->isRemoteInteractorConnected)
+            return;
 
         // Moved to a new scene
         if (lastSceneNum != gPlayState->sceneId) {
             Anchor_SendClientData();
         }
-        
-        // if (GameInteractor::Instance->IsSaveLoaded()) {
+
+        if (GameInteractor::Instance->IsSaveLoaded()) {
             // Player loaded into file
             if (lastSceneNum == SCENE_MAX) {
                 Anchor_RequestSaveStateFromRemote();
             }
 
             Anchor_RefreshClientActors();
-        // }
+        }
 
         lastSceneNum = gPlayState->sceneId;
     });
@@ -810,12 +1034,14 @@ void Anchor_RegisterHooks() {
     //     Anchor_SendClientData();
     // });
     // GameInteractor::Instance->RegisterGameHook<GameInteractor::OnItemReceive>([](GetItemEntry itemEntry) {
-    //     if (itemEntry.modIndex == MOD_NONE && ((itemEntry.itemId >= ITEM_KEY_BOSS && itemEntry.itemId <= ITEM_KEY_SMALL) || itemEntry.itemId == ITEM_SWORD_MASTER)) {
+    //     if (itemEntry.modIndex == MOD_NONE && ((itemEntry.itemId >= ITEM_KEY_BOSS && itemEntry.itemId <=
+    //     ITEM_KEY_SMALL) || itemEntry.itemId == ITEM_SWORD_MASTER)) {
     //         return;
     //     }
 
     //     // If the item exists in receivedItems, remove it from the list and don't emit the packet
-    //     auto it = std::find_if(receivedItems.begin(), receivedItems.end(), [itemEntry](std::pair<uint16_t, int16_t> pair) {
+    //     auto it = std::find_if(receivedItems.begin(), receivedItems.end(), [itemEntry](std::pair<uint16_t, int16_t>
+    //     pair) {
     //         return pair.first == itemEntry.tableId && pair.second == itemEntry.getItemId;
     //     });
     //     if (it != receivedItems.end()) {
@@ -823,7 +1049,8 @@ void Anchor_RegisterHooks() {
     //         return;
     //     }
 
-    //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) return;
+    //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded())
+    //     return;
 
     //     nlohmann::json payload;
 
@@ -833,9 +1060,10 @@ void Anchor_RegisterHooks() {
 
     //     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
     // });
-    // GameInteractor::Instance->RegisterGameHook<GameInteractor::OnSceneFlagSet>([](int16_t sceneNum, int16_t flagType, int16_t flag) {
-    //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) return;
-    //     nlohmann::json payload;
+    // GameInteractor::Instance->RegisterGameHook<GameInteractor::OnSceneFlagSet>([](int16_t sceneNum, int16_t flagType,
+    // int16_t flag) {
+    //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded())
+    //     return; nlohmann::json payload;
 
     //     payload["type"] = "SET_SCENE_FLAG";
     //     payload["sceneNum"] = sceneNum;
@@ -850,8 +1078,8 @@ void Anchor_RegisterHooks() {
     //         return;
     //     }
 
-    //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) return;
-    //     nlohmann::json payload;
+    //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded())
+    //     return; nlohmann::json payload;
 
     //     payload["type"] = "SET_FLAG";
     //     payload["flagType"] = flagType;
@@ -860,9 +1088,10 @@ void Anchor_RegisterHooks() {
 
     //     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
     // });
-    // GameInteractor::Instance->RegisterGameHook<GameInteractor::OnSceneFlagUnset>([](int16_t sceneNum, int16_t flagType, int16_t flag) {
-    //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) return;
-    //     nlohmann::json payload;
+    // GameInteractor::Instance->RegisterGameHook<GameInteractor::OnSceneFlagUnset>([](int16_t sceneNum, int16_t
+    // flagType, int16_t flag) {
+    //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded())
+    //     return; nlohmann::json payload;
 
     //     payload["type"] = "UNSET_SCENE_FLAG";
     //     payload["sceneNum"] = sceneNum;
@@ -877,8 +1106,8 @@ void Anchor_RegisterHooks() {
     //         return;
     //     }
 
-    //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) return;
-    //     nlohmann::json payload;
+    //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded())
+    //     return; nlohmann::json payload;
 
     //     payload["type"] = "UNSET_FLAG";
     //     payload["flagType"] = flagType;
@@ -888,20 +1117,21 @@ void Anchor_RegisterHooks() {
     //     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
     // });
     GameInteractor::Instance->RegisterGameHookForID<GameInteractor::OnActorUpdate>(ACTOR_PLAYER, [](Actor* actor) {
-        
         uint32_t currentPlayerCount = 0;
         for (auto& [clientId, client] : GameInteractorAnchor::AnchorClients) {
             if (client.sceneNum == gPlayState->sceneId) {
                 currentPlayerCount++;
             }
         }
-        if (!GameInteractor::Instance->isRemoteInteractorConnected || gPlayState == NULL /* || !GameInteractor::Instance->IsSaveLoaded() */) {
+        if (!GameInteractor::Instance->isRemoteInteractorConnected || gPlayState == NULL ||
+            !GameInteractor::Instance->IsSaveLoaded()) {
             return;
         }
         Player* player = GET_PLAYER(gPlayState);
-        
+
         nlohmann::json payload;
-        if (currentPlayerCount == 0) return;
+        if (currentPlayerCount == 0)
+            return;
 
         // gSaveContext.playerData.bootsType = player->currentBoots;
         // gSaveContext.playerData.shieldType = player->currentShield;
@@ -958,7 +1188,6 @@ void Anchor_RegisterHooks() {
             if (client.sceneNum == gPlayState->sceneId) {
                 payload["targetClientId"] = clientId;
                 GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
-                //LUSLOG_DEBUG("IN Actor Update hook, sent json", NULL);
             }
         }
 
@@ -1106,347 +1335,133 @@ void Anchor_RegisterHooks() {
 //     payload["entranceIndex"] = gSaveContext.entranceIndex;
 //     payload["roomIndex"] = gPlayState->roomCtx.curRoom.num;
 //     payload["posRot"] = player->actor.world;
-    
+
 //     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
 // }
 
 ////////////////
 
-// void Anchor_RegisterHooks() {
-//     GameInteractor::Instance->RegisterGameHook<GameInteractor::OnLoadSave>([](s16 fileNum) {
-//         if (!GameInteractor::Instance->isRemoteInteractorConnected || gSaveContext.fileNum > 2) return;
+// const ImVec4 GRAY = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
+// const ImVec4 WHITE = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+// const ImVec4 GREEN = ImVec4(0.5f, 1.0f, 0.5f, 1.0f);
 
-//         Anchor_SendClientData();
-//         Anchor_RequestSaveStateFromRemote();
-//     });
-//     GameInteractor::Instance->RegisterGameHook<GameInteractor::OnItemGive>([](u8 item) {
-//         // if (itemEntry.modIndex == MOD_NONE && (itemEntry.itemId == ITEM_KEY_SMALL || itemEntry.itemId == ITEM_KEY_BOSS || itemEntry.itemId == ITEM_SWORD_MASTER)) {
-//         //     return;
-//         // }
+void AnchorPlayerLocationWindow::DrawElement() {
+    ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0.5f));
+    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
+    ImGui::Begin("AnchorPlayerLocationWindow", &mIsVisible,
+                 ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoFocusOnAppearing |
+                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
+                     ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar);
 
-//         // // If the item exists in receivedItems, remove it from the list and don't emit the packet
-//         // auto it = std::find_if(receivedItems.begin(), receivedItems.end(), [itemEntry](std::pair<uint16_t, int16_t> pair) {
-//         //     return pair.first == itemEntry.tableId && pair.second == itemEntry.getItemId;
-//         // });
-//         // if (it != receivedItems.end()) {
-//         //     receivedItems.erase(it);
-//         //     return;
-//         // }
+    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "%s", CVarGetString("gRemote.AnchorName", ""));
+    if (gPlayState != NULL) {
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(0.5, 0.5, 0.5, 1), "%s", GetSceneName(gPlayState->sceneId).c_str());
+    }
+    for (auto& [clientId, client] : GameInteractorAnchor::AnchorClients) {
+        ImGui::PushID(clientId);
+        ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "%s", client.name.c_str());
+        if (client.sceneNum < SCENE_MAX) {
+            ImGui::SameLine();
+            ImGui::TextColored(ImVec4(0.5, 0.5, 0.5, 1), "%s", GetSceneName(client.sceneNum).c_str());
+            if (gPlayState != NULL && client.sceneNum != SCENE_MAX) {
+                ImGui::SameLine();
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+                if (ImGui::Button(ICON_FA_CHEVRON_RIGHT,
+                                  ImVec2(ImGui::GetFontSize() * 1.0f, ImGui::GetFontSize() * 1.0f))) {
+                    // Play_SetRespawnData(gPlayState, RESPAWN_MODE_DOWN, client.entranceIndex, client.roomIndex, 0xDFF,
+                    // &client.posRot.pos, client.posRot.rot.y); Play_TriggerVoidOut(gPlayState);
+                }
+                ImGui::PopStyleVar();
+            }
+        }
+        ImGui::PopID();
+    }
 
-//         if (!GameInteractor::Instance->isRemoteInteractorConnected /* || !GameInteractor::Instance->IsSaveLoaded() */) return;
+    ImGui::End();
+    ImGui::PopStyleVar();
+    ImGui::PopStyleColor(2);
+}
 
-//         nlohmann::json payload;
+void AnchorLogWindow::DrawElement() {
+    ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0.5f));
+    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
+    ImGui::Begin("AnchorLogWindow", &mIsVisible,
+                 ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoFocusOnAppearing |
+                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
+                     ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar);
 
-//         payload["type"] = "GIVE_ITEM";
-//         //payload["modId"] = itemEntry.tableId;
-//         payload["getItemId"] = item;
+    // Options to stack notifications on top or bottom, and left or right
+    if (ImGui::Button(CVarGetInteger("gRemote.AnchorLogWindowX", 1) ? ICON_FA_CHEVRON_RIGHT : ICON_FA_CHEVRON_LEFT,
+                      ImVec2(20, 20))) {
+        CVarSetInteger("gRemote.AnchorLogWindowX", !CVarGetInteger("gRemote.AnchorLogWindowX", 1));
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(CVarGetInteger("gRemote.AnchorLogWindowY", 1) ? ICON_FA_CHEVRON_DOWN : ICON_FA_CHEVRON_UP,
+                      ImVec2(20, 20))) {
+        CVarSetInteger("gRemote.AnchorLogWindowY", !CVarGetInteger("gRemote.AnchorLogWindowY", 1));
+    }
 
-//         GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
-//     });
-//     // GameInteractor::Instance->RegisterGameHook<GameInteractor::OnSceneFlagSet>([](int16_t sceneNum, int16_t flagType, int16_t flag) {
-//     //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) return;
-//     //     nlohmann::json payload;
+    // Store x/y position of window
+    ImVec2 anchorPos = ImGui::GetWindowPos();
+    ImVec2 anchorSize = ImGui::GetWindowSize();
 
-//     //     payload["type"] = "SET_SCENE_FLAG";
-//     //     payload["sceneNum"] = sceneNum;
-//     //     payload["flagType"] = flagType;
-//     //     payload["flag"] = flag;
+    for (int index = 0; index < anchorMessages.size(); ++index) {
+        auto& message = anchorMessages[index];
+        int inverseIndex = -ABS(index - (anchorMessages.size() - 1));
+        ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
+        if (message.remainingTime < 4.0f) {
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, (message.remainingTime - 1) / 3.0f);
+        } else {
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
+        }
+        ImGui::Begin(("anchorLog" + std::to_string(message.id)).c_str(), nullptr,
+                     ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoFocusOnAppearing |
+                         ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
+                         ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMove |
+                         ImGuiWindowFlags_NoScrollbar);
+        ImGui::SetWindowPos(ImVec2(
+            // X position should take into account both the alignment and the width of the message window
+            anchorPos.x +
+                (CVarGetInteger("gRemote.AnchorLogWindowX", 1) ? 0 : -(ImGui::GetWindowSize().x - anchorSize.x)),
+            // Y Position should take into account the stack direction and index of the message
+            anchorPos.y + (CVarGetInteger("gRemote.AnchorLogWindowY", 1)
+                               ? (anchorSize.y + (ImGui::GetWindowSize().y * inverseIndex))
+                               : -(ImGui::GetWindowSize().y * (inverseIndex + 1)))));
+        ImGui::SetWindowFontScale(1.8f);
 
-//     //     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
-//     // });
-//     // GameInteractor::Instance->RegisterGameHook<GameInteractor::OnFlagSet>([](int16_t flagType, int16_t flag) {
-//     //     if (flagType == FLAG_INF_TABLE && flag == INFTABLE_SWORDLESS) {
-//     //         return;
-//     //     }
+        if (message.itemIcon != nullptr) {
+            ImGui::Image(Ship::Context::GetInstance()->GetWindow()->GetGui()->GetTextureByName(message.itemIcon),
+                         ImVec2(24, 24));
+            ImGui::SameLine();
+        }
+        if (!message.prefix.empty()) {
+            ImGui::TextColored(message.prefixColor, "%s", message.prefix.c_str());
+            ImGui::SameLine();
+        }
+        ImGui::TextColored(message.messageColor, "%s", message.message.c_str());
+        if (!message.suffix.empty()) {
+            ImGui::SameLine();
+            ImGui::TextColored(message.suffixColor, "%s", message.suffix.c_str());
+        }
+        ImGui::End();
+        ImGui::PopStyleVar();
 
-//     //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) return;
-//     //     nlohmann::json payload;
+        // decrement remainingTime
+        message.remainingTime -= ImGui::GetIO().DeltaTime;
 
-//     //     payload["type"] = "SET_FLAG";
-//     //     payload["flagType"] = flagType;
-//     //     payload["flag"] = flag;
+        // remove message if it has expired
+        if (message.remainingTime <= 0) {
+            anchorMessages.erase(anchorMessages.begin() + index);
+            --index;
+        }
+    }
 
-//     //     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
-//     // });
-//     // GameInteractor::Instance->RegisterGameHook<GameInteractor::OnSceneFlagUnset>([](int16_t sceneNum, int16_t flagType, int16_t flag) {
-//     //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) return;
-//     //     nlohmann::json payload;
-
-//     //     payload["type"] = "UNSET_SCENE_FLAG";
-//     //     payload["sceneNum"] = sceneNum;
-//     //     payload["flagType"] = flagType;
-//     //     payload["flag"] = flag;
-
-//     //     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
-//     // });
-//     // GameInteractor::Instance->RegisterGameHook<GameInteractor::OnFlagUnset>([](int16_t flagType, int16_t flag) {
-//     //     if (flagType == FLAG_INF_TABLE && flag == INFTABLE_SWORDLESS) {
-//     //         return;
-//     //     }
-
-//     //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) return;
-//     //     nlohmann::json payload;
-
-//     //     payload["type"] = "UNSET_FLAG";
-//     //     payload["flagType"] = flagType;
-//     //     payload["flag"] = flag;
-
-//     //     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
-//     // });
-//     GameInteractor::Instance->RegisterGameHookForID<GameInteractor::OnActorUpdate>(ACTOR_PLAYER, [](Actor* actor) {
-        
-//         uint32_t currentPlayerCount = GameInteractorAnchor::AnchorClients.size();
-
-//         if (!GameInteractor::Instance->isRemoteInteractorConnected || gPlayState == NULL /* || !GameInteractor::Instance->IsSaveLoaded() */) {
-//             return;
-//         }
-
-//         Player* player = GET_PLAYER(gPlayState);
-//         nlohmann::json payload;
-//         float currentPosition = player->actor.world.pos.x + player->actor.world.pos.y + player->actor.world.pos.z + player->actor.world.rot.y;
-
-//         // gSaveContext.playerData.bootsType = player->currentBoots;
-//         // gSaveContext.playerData.shieldType = player->currentShield;
-//         // gSaveContext.playerData.sheathType = player->sheathType;
-//         // gSaveContext.playerData.leftHandType = player->leftHandType;
-//         // gSaveContext.playerData.rightHandType = player->rightHandType;
-//         // gSaveContext.playerData.tunicType = player->currentTunic;
-//         // gSaveContext.playerData.faceType = player->actor.shape.face;
-//         // gSaveContext.playerData.biggoron_broken = gSaveContext.swordHealth <= 0 ? 1 : 0;
-//         PlayerData current;
-//         current.playerForm = player->transformation;
-//         //gSaveContext.shipSaveContext.playerData.playerForm = gSaveContext.save.playerForm;
-
-//         payload["type"] = "CLIENT_UPDATE";
-//         payload["sceneNum"] = gPlayState->sceneId;
-//         payload["roomIndex"] = gPlayState->roomCtx.curRoom.num;
-//         payload["entranceIndex"] = gSaveContext.save.entrance;
-
-//         PosRot playerPosRot;
-//         playerPosRot.pos = player->actor.world.pos;
-//         playerPosRot.rot = player->actor.shape.rot;
-//         payload["posRot"] = playerPosRot;
-
-//         payload["playerData"] = current;
-
-//         std::vector<Vec3s> jointTable = {};
-//         for (int i = 0; i < 23; i++) {
-//             jointTable.push_back(player->skelAnime.jointTable[i]);
-//         }
-
-//         payload["jointTable"] = jointTable;
-//         payload["quiet"] = true;
-
-//         GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
-
-//         // gSaveContext.playerData.damageEffect = 0;
-//         // gSaveContext.playerData.damageValue = 0;
-//         // gSaveContext.playerData.playerSound = 0;
-//     });
-// }
-
-// // void Anchor_SkipLocation(uint32_t locationIndex, bool skipped) {
-// //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) return;
-
-// //     nlohmann::json payload;
-
-// //     payload["type"] = "SKIP_LOCATION";
-// //     payload["locationIndex"] = locationIndex;
-// //     payload["skipped"] = skipped;
-
-// //     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
-// // }
-
-// // void Anchor_UpdateBeansBought(uint8_t amount) {
-// //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) return;
-
-// //     nlohmann::json payload;
-
-// //     payload["type"] = "UPDATE_BEANS_BOUGHT";
-// //     payload["amount"] = amount;
-
-// //     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
-// // }
-
-// // void Anchor_UpdateBeansCount(uint8_t amount) {
-// //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) return;
-
-// //     nlohmann::json payload;
-
-// //     payload["type"] = "UPDATE_BEANS_COUNT";
-// //     payload["amount"] = amount;
-
-// //     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
-// // }
-
-// // void Anchor_ConsumeAdultTradeItem(uint8_t itemId) {
-// //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) return;
-
-// //     nlohmann::json payload;
-
-// //     payload["type"] = "CONSUME_ADULT_TRADE_ITEM";
-// //     payload["itemId"] = itemId;
-
-// //     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
-// // }
-
-// // void Anchor_UpdateKeyCount(int16_t sceneNum, int8_t amount) {
-// //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) return;
-
-// //     nlohmann::json payload;
-
-// //     payload["type"] = "UPDATE_KEY_COUNT";
-// //     payload["sceneNum"] = sceneNum;
-// //     payload["amount"] = amount;
-
-// //     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
-// // }
-
-// // void Anchor_GameComplete() {
-// //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) return;
-
-// //     nlohmann::json payload;
-
-// //     payload["type"] = "GAME_COMPLETE";
-
-// //     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
-// //     Anchor_SendClientData();
-// // }
-
-// // const ImVec4 GRAY = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
-// // const ImVec4 WHITE = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-// // const ImVec4 GREEN = ImVec4(0.5f, 1.0f, 0.5f, 1.0f);
-
-// // void AnchorPlayerLocationWindow::DrawElement() {
-// //     ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
-// //     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0.5f));
-// //     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
-// //     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
-// //     ImGui::Begin("AnchorPlayerLocationWindow", &mIsVisible, 
-// //         ImGuiWindowFlags_AlwaysAutoResize |
-// //         ImGuiWindowFlags_NoNav |
-// //         ImGuiWindowFlags_NoFocusOnAppearing |
-// //         ImGuiWindowFlags_NoResize |
-// //         ImGuiWindowFlags_NoDocking |
-// //         ImGuiWindowFlags_NoTitleBar |
-// //         ImGuiWindowFlags_NoScrollWithMouse |
-// //         ImGuiWindowFlags_NoScrollbar
-// //     );
-
-// //     ImGui::TextColored(gSaveContext.sohStats.gameComplete ? GREEN : WHITE, "%s", CVarGetString("gRemote.AnchorName", ""));
-// //     if (gPlayState != NULL) {
-// //         ImGui::SameLine();
-// //         ImGui::TextColored(ImVec4(0.5, 0.5, 0.5, 1), "%s", SohUtils::GetSceneName(gPlayState->sceneNum).c_str());
-// //     }
-// //     for (auto& [clientId, client] : GameInteractorAnchor::AnchorClients) {
-// //         ImGui::PushID(clientId);
-// //         ImGui::TextColored(client.gameComplete ? GREEN : WHITE, "%s", client.name.c_str());
-// //         if (client.scene < SCENE_MAX) {
-// //             ImGui::SameLine();
-// //             ImGui::TextColored(ImVec4(0.5, 0.5, 0.5, 1), "%s", SohUtils::GetSceneName(client.scene).c_str());
-// //             if (gPlayState != NULL && client.scene != SCENE_GROTTOS && client.scene != SCENE_MAX) {
-// //                 ImGui::SameLine();
-// //                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-// //                 if (ImGui::Button(ICON_FA_CHEVRON_RIGHT, ImVec2(ImGui::GetFontSize() * 1.0f, ImGui::GetFontSize() * 1.0f))) {
-// //                     Play_SetRespawnData(gPlayState, RESPAWN_MODE_DOWN, client.entranceIndex, client.roomIndex, 0xDFF, &client.posRot.pos, client.posRot.rot.y);
-// //                     Play_TriggerVoidOut(gPlayState);
-// //                 }
-// //                 ImGui::PopStyleVar();
-// //             }
-// //         }
-// //         ImGui::PopID();
-// //     }
-
-// //     ImGui::End();
-// //     ImGui::PopStyleVar();
-// //     ImGui::PopStyleColor(2);
-// // }
-
-// // void AnchorLogWindow::DrawElement() {
-// //     ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
-// //     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0.5f));
-// //     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
-// //     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
-// //     ImGui::Begin("AnchorLogWindow", &mIsVisible,
-// //         ImGuiWindowFlags_AlwaysAutoResize |
-// //         ImGuiWindowFlags_NoNav |
-// //         ImGuiWindowFlags_NoFocusOnAppearing |
-// //         ImGuiWindowFlags_NoResize |
-// //         ImGuiWindowFlags_NoDocking |
-// //         ImGuiWindowFlags_NoTitleBar |
-// //         ImGuiWindowFlags_NoScrollWithMouse |
-// //         ImGuiWindowFlags_NoScrollbar
-// //     );
-
-// //     // Options to stack notifications on top or bottom, and left or right
-// //     if (ImGui::Button(CVarGetInteger("gRemote.AnchorLogWindowX", 1) ? ICON_FA_CHEVRON_RIGHT : ICON_FA_CHEVRON_LEFT, ImVec2(20, 20))) {
-// //         CVarSetInteger("gRemote.AnchorLogWindowX", !CVarGetInteger("gRemote.AnchorLogWindowX", 1));
-// //     }
-// //     ImGui::SameLine();
-// //     if (ImGui::Button(CVarGetInteger("gRemote.AnchorLogWindowY", 1) ? ICON_FA_CHEVRON_DOWN : ICON_FA_CHEVRON_UP, ImVec2(20, 20))) {
-// //         CVarSetInteger("gRemote.AnchorLogWindowY", !CVarGetInteger("gRemote.AnchorLogWindowY", 1));
-// //     }
-
-// //     // Store x/y position of window
-// //     ImVec2 anchorPos = ImGui::GetWindowPos();
-// //     ImVec2 anchorSize = ImGui::GetWindowSize();
-
-// //     for (int index = 0; index < anchorMessages.size(); ++index) {
-// //         auto& message = anchorMessages[index];
-// //         int inverseIndex = -ABS(index - (anchorMessages.size() - 1));
-// //         ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
-// //         if (message.remainingTime < 4.0f) {
-// //             ImGui::PushStyleVar(ImGuiStyleVar_Alpha, (message.remainingTime - 1) / 3.0f);
-// //         } else {
-// //             ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
-// //         }
-// //         ImGui::Begin(("anchorLog" + std::to_string(message.id)).c_str(), nullptr,
-// //             ImGuiWindowFlags_AlwaysAutoResize |
-// //             ImGuiWindowFlags_NoNav |
-// //             ImGuiWindowFlags_NoFocusOnAppearing |
-// //             ImGuiWindowFlags_NoResize |
-// //             ImGuiWindowFlags_NoDocking |
-// //             ImGuiWindowFlags_NoTitleBar |
-// //             ImGuiWindowFlags_NoScrollWithMouse |
-// //             ImGuiWindowFlags_NoInputs |
-// //             ImGuiWindowFlags_NoMove |
-// //             ImGuiWindowFlags_NoScrollbar
-// //         );
-// //         ImGui::SetWindowPos(ImVec2(
-// //             // X position should take into account both the alignment and the width of the message window
-// //             anchorPos.x + (CVarGetInteger("gRemote.AnchorLogWindowX", 1) ? 0 : -(ImGui::GetWindowSize().x - anchorSize.x)),
-// //             // Y Position should take into account the stack direction and index of the message
-// //             anchorPos.y + (CVarGetInteger("gRemote.AnchorLogWindowY", 1) ? (anchorSize.y + (ImGui::GetWindowSize().y * inverseIndex)) : -(ImGui::GetWindowSize().y * (inverseIndex + 1)))
-// //         ));
-// //         ImGui::SetWindowFontScale(1.8f);
-
-// //         if (message.itemIcon != nullptr) {
-// //             ImGui::Image(LUS::Context::GetInstance()->GetWindow()->GetGui()->GetTextureByName(message.itemIcon), ImVec2(24, 24));
-// //             ImGui::SameLine();
-// //         }
-// //         if (!message.prefix.empty()) {
-// //             ImGui::TextColored(message.prefixColor, "%s", message.prefix.c_str());
-// //             ImGui::SameLine();
-// //         }
-// //         ImGui::TextColored(message.messageColor, "%s", message.message.c_str());
-// //         if (!message.suffix.empty()) {
-// //             ImGui::SameLine();
-// //             ImGui::TextColored(message.suffixColor, "%s", message.suffix.c_str());
-// //         }
-// //         ImGui::End();
-// //         ImGui::PopStyleVar();
-
-// //         // decrement remainingTime
-// //         message.remainingTime -= ImGui::GetIO().DeltaTime;
-
-// //         // remove message if it has expired
-// //         if (message.remainingTime <= 0) {
-// //             anchorMessages.erase(anchorMessages.begin() + index);
-// //             --index;
-// //         }
-// //     }
-
-// //     ImGui::End();
-// //     ImGui::PopStyleVar();
-// //     ImGui::PopStyleColor(2);
-// // }
+    ImGui::End();
+    ImGui::PopStyleVar();
+    ImGui::PopStyleColor(2);
+}

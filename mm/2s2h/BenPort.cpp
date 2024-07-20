@@ -96,7 +96,6 @@ CrowdControl* CrowdControl::Instance;
 #include "2s2h/resource/importer/TextureAnimationFactory.h"
 #include "2s2h/resource/importer/KeyFrameFactory.h"
 
-
 #include "Enhancements/GameInteractor/GameInteractor_Anchor.h"
 GameInteractorAnchor* GameInteractorAnchor::Instance;
 
@@ -105,8 +104,6 @@ GameInteractorAnchor* GameInteractorAnchor::Instance;
 
 OTRGlobals* OTRGlobals::Instance;
 GameInteractor* GameInteractor::Instance;
-
-
 
 extern "C" char** cameraStrings;
 bool prevAltAssets = false;
@@ -510,10 +507,9 @@ extern "C" void InitOTR() {
 
     GameInteractorAnchor::Instance = new GameInteractorAnchor();
 
-
     SDLNet_Init();
     if (CVarGetInteger("gRemote.Enabled", 0)) {
-        GameInteractorAnchor::Instance->Enable();    
+        GameInteractorAnchor::Instance->Enable();
     }
 
     std::shared_ptr<Ship::Config> conf = OTRGlobals::Instance->context->GetConfig();
@@ -531,11 +527,10 @@ extern "C" void DeinitOTR() {
     CrowdControl::Instance->Shutdown();
 #endif
 
-
     if (CVarGetInteger("gRemote.Enabled", 0)) {
-        GameInteractorAnchor::Instance->Disable();    
+        GameInteractorAnchor::Instance->Disable();
     }
-    
+
     SDLNet_Quit();
 
     // Destroying gui here because we have shared ptrs to LUS objects which output to SPDLOG which is destroyed before

@@ -3,6 +3,9 @@
 
 extern "C" {
 #include "z64actor.h"
+#include "macros.h"
+#include "variables.h"
+extern PlayState* gPlayState;
 }
 
 #include <libultraship/bridge.h>
@@ -264,4 +267,13 @@ uint32_t GameInteractor_Dpad(GIDpadType type, uint32_t buttonCombo) {
     }
 
     return result;
+}
+
+bool GameInteractor::IsSaveLoaded() {
+    Player* player;
+    if (gPlayState != NULL) {
+        player = GET_PLAYER(gPlayState);
+    }
+    return (gPlayState == NULL || player == NULL || gSaveContext.fileNum < 0 || gSaveContext.fileNum > 2) ? false
+                                                                                                          : true;
 }
