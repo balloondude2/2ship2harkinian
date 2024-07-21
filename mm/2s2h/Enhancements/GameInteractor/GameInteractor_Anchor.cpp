@@ -1,6 +1,6 @@
 
 // TODOs: send and receive flags/items; mabye update ben overlay; clean up organization (move json to jsonConversions
-// file)
+// file); nametags from Archez's PR
 
 #include "GameInteractor_Anchor.h"
 #include <libultraship/libultraship.h>
@@ -28,83 +28,6 @@ s16 gEnLinkPuppetId = 0x2B2;
 
 using json = nlohmann::json;
 
-void from_json(const json& j, Color_RGB8& color) {
-    j.at("r").get_to(color.r);
-    j.at("g").get_to(color.g);
-    j.at("b").get_to(color.b);
-}
-
-void to_json(json& j, const Color_RGB8& color) {
-    j = json{ { "r", color.r }, { "g", color.g }, { "b", color.b } };
-}
-
-void from_json(const json& j, PlayerData& playerData) {
-    j.at("playerForm").get_to(playerData.playerForm);
-    // j.at("playerSound").get_to(playerData.playerSound);
-    // j.at("sheathType").get_to(playerData.sheathType);
-    // j.at("leftHandType").get_to(playerData.leftHandType);
-    // j.at("biggoron_broken").get_to(playerData.biggoron_broken);
-    // j.at("rightHandType").get_to(playerData.rightHandType);
-    // j.at("tunicType").get_to(playerData.tunicType);
-    // j.at("bootsType").get_to(playerData.bootsType);
-    // j.at("faceType").get_to(playerData.faceType);
-    // j.at("shieldType").get_to(playerData.shieldType);
-    // j.at("damageEffect").get_to(playerData.damageEffect);
-    // j.at("damageValue").get_to(playerData.damageValue);
-}
-
-void to_json(json& j, const PlayerData& playerData) {
-    j = json{
-        { "playerForm", playerData.playerForm },
-        // { "playerSound", playerData.playerSound },
-        // { "sheathType", playerData.sheathType },
-        // { "leftHandType", playerData.leftHandType },
-        // { "biggoron_broken", playerData.biggoron_broken },
-        // { "rightHandType", playerData.rightHandType },
-        // { "tunicType", playerData.tunicType },
-        // { "bootsType", playerData.bootsType },
-        // { "faceType", playerData.faceType },
-        // { "shieldType", playerData.shieldType },
-        // { "damageEffect", playerData.damageEffect },
-        // { "damageValue", playerData.damageValue },
-    };
-}
-
-void to_json(json& j, const Vec3f& vec) {
-    j = json{ { "x", vec.x }, { "y", vec.y }, { "z", vec.z } };
-}
-
-// void to_json(json& j, const Vec3s& vec) {
-//     j = json{
-//         {"x", vec.x},
-//         {"y", vec.y},
-//         {"z", vec.z}
-//     };
-// }
-
-void from_json(const json& j, Vec3f& vec) {
-    j.at("x").get_to(vec.x);
-    j.at("y").get_to(vec.y);
-    j.at("z").get_to(vec.z);
-}
-
-// void from_json(const json& j, Vec3s& vec) {
-//     j.at("x").get_to(vec.x);
-//     j.at("y").get_to(vec.y);
-//     j.at("z").get_to(vec.z);
-// }
-
-void to_json(json& j, const PosRot& posRot) {
-    j = json{
-        { "pos", posRot.pos },
-        { "rot", posRot.rot },
-    };
-}
-
-void from_json(const json& j, PosRot& posRot) {
-    j.at("pos").get_to(posRot.pos);
-    j.at("rot").get_to(posRot.rot);
-}
 
 void from_json(const json& j, AnchorClient& client) {
     j.contains("clientId") ? j.at("clientId").get_to(client.clientId) : client.clientId = 0;
@@ -121,120 +44,24 @@ void from_json(const json& j, AnchorClient& client) {
     j.contains("playerData") ? j.at("playerData").get_to(client.playerData) : client.playerData = { 0 };
 }
 
-// void to_json(json& j, const PermanentSceneFlags& flags) {
-//     j = json{
-//         {"chest", flags.chest},
-//         {"switch0", flags.switch0},
-//         {"switch1", flags.switch1},
-//         {"clearedRoom", flags.clearedRoom},
-//         {"collectible", flags.collectible},
-//     };
-// }
+void to_json(json& j, const CycleSceneFlags& flags) {
+    j = json{
+        {"chest", flags.chest},
+        {"switch0", flags.switch0},
+        {"switch1", flags.switch1},
+        {"clearedRoom", flags.clearedRoom},
+        {"collectible", flags.collectible},
+    };
+}
 
-// void from_json(const json& j, PermanentSceneFlags& flags) {
-//     j.at("chest").get_to(flags.chest);
-//     j.at("switch0").get_to(flags.switch0);
-//     j.at("switch1").get_to(flags.switch1);
-//     j.at("clearedRoom").get_to(flags.clearedRoom);
-//     j.at("collectible").get_to(flags.collectible);
-// }
+void from_json(const json& j, CycleSceneFlags& flags) {
+    j.at("chest").get_to(flags.chest);
+    j.at("switch0").get_to(flags.switch0);
+    j.at("switch1").get_to(flags.switch1);
+    j.at("clearedRoom").get_to(flags.clearedRoom);
+    j.at("collectible").get_to(flags.collectible);
+}
 
-// void to_json(json& j, const CycleSceneFlags& flags) {
-//     j = json{
-//         {"chest", flags.chest},
-//         {"switch0", flags.switch0},
-//         {"switch1", flags.switch1},
-//         {"clearedRoom", flags.clearedRoom},
-//         {"collectible", flags.collectible},
-//     };
-// }
-
-// void from_json(const json& j, CycleSceneFlags& flags) {
-//     j.at("chest").get_to(flags.chest);
-//     j.at("switch0").get_to(flags.switch0);
-//     j.at("switch1").get_to(flags.switch1);
-//     j.at("clearedRoom").get_to(flags.clearedRoom);
-//     j.at("collectible").get_to(flags.collectible);
-// }
-
-// void to_json(json& j, const Inventory& inventory) {
-//     j = json{
-//         {"items", inventory.items},
-//         {"ammo", inventory.ammo},
-//         {"upgrades", inventory.upgrades},
-//         {"questItems", inventory.questItems},
-//         {"dungeonItems", inventory.dungeonItems},
-//         {"dungeonKeys", inventory.dungeonKeys},
-//         {"defenseHearts", inventory.defenseHearts},
-//         {"strayFairies", inventory.strayFairies},
-//     };
-// }
-
-// void from_json(const json& j, Inventory& inventory) {
-//     j.at("items").get_to(inventory.items);
-//     j.at("ammo").get_to(inventory.ammo);
-//     j.at("upgrades").get_to(inventory.upgrades);
-//     j.at("questItems").get_to(inventory.questItems);
-//     j.at("dungeonItems").get_to(inventory.dungeonItems);
-//     j.at("dungeonKeys").get_to(inventory.dungeonKeys);
-//     j.at("defenseHearts").get_to(inventory.defenseHearts);
-//     j.at("strayFairies").get_to(inventory.strayFairies);
-// }
-
-// // void to_json(json& j, const SohStats& sohStats) {
-// //     j = json{
-// //         {"locationsSkipped", sohStats.locationsSkipped},
-// //         {"fileCreatedAt", sohStats.fileCreatedAt},
-// //     };
-// // }
-
-// // void from_json(const json& j, SohStats& sohStats) {
-// //     j.at("locationsSkipped").get_to(sohStats.locationsSkipped);
-// //     j.contains("fileCreatedAt") ? j.at("fileCreatedAt").get_to(sohStats.fileCreatedAt) :
-// gSaveContext.sohStats.fileCreatedAt;
-// // }
-
-// void to_json(json& j, const SavePlayerData& savePlayerData) {
-//     j = json{
-//         {"healthCapacity", savePlayerData.healthCapacity},
-//         {"magicLevel", savePlayerData.magicLevel},
-//         //{"magicCapacity", savePlayerData.magicCapacity},
-//         {"isMagicAcquired", savePlayerData.isMagicAcquired},
-//         {"isDoubleMagicAcquired", savePlayerData.isDoubleMagicAcquired},
-//         {"doubleDefense", savePlayerData.doubleDefense},
-//         //{"bgsFlag", savePlayerData.bgsFlag},
-//         {"swordHealth", savePlayerData.swordHealth},
-//         //{"sceneFlags", savePlayerData.sceneFlags},
-//         //{"eventChkInf", savePlayerData.eventChkInf},
-//         //{"itemGetInf", savePlayerData.itemGetInf},
-//         //{"infTable", savePlayerData.infTable},
-//         //{"randomizerInf", savePlayerData.randomizerInf},
-//         //{"gsFlags", savePlayerData.gsFlags},
-//         //{"inventory", savePlayerData.inventory},
-//         //{"sohStats", savePlayerData.sohStats},
-//         //{"adultTradeItems", savePlayerData.adultTradeItems},
-//     };
-// }
-
-// void from_json(const json& j, SavePlayerData& savePlayerData) {
-//     j.at("healthCapacity").get_to(savePlayerData.healthCapacity);
-//     j.at("magicLevel").get_to(savePlayerData.magicLevel);
-//     //j.at("magicCapacity").get_to(savePlayerData.magicCapacity);
-//     j.at("isMagicAcquired").get_to(savePlayerData.isMagicAcquired);
-//     j.at("isDoubleMagicAcquired").get_to(savePlayerData.isDoubleMagicAcquired);
-//     j.at("doubleDefense").get_to(savePlayerData.doubleDefense);
-//     //j.at("bgsFlag").get_to(savePlayerData.bgsFlag);
-//     j.at("swordHealth").get_to(savePlayerData.swordHealth);
-//     //j.at("sceneFlags").get_to(savePlayerData.sceneFlags);
-//     //j.at("eventChkInf").get_to(savePlayerData.eventChkInf);
-//     //j.at("itemGetInf").get_to(savePlayerData.itemGetInf);
-//     //j.at("infTable").get_to(savePlayerData.infTable);
-//     //j.at("randomizerInf").get_to(savePlayerData.randomizerInf);
-//     //j.at("gsFlags").get_to(savePlayerData.gsFlags);
-//     //j.at("inventory").get_to(savePlayerData.inventory);
-//     //j.at("sohStats").get_to(savePlayerData.sohStats);
-//     //j.at("adultTradeItems").get_to(savePlayerData.adultTradeItems);
-// }
 
 std::vector<std::string> sceneNames = {
     /* 0x00 */ "Southern Swamp (Clear)",
@@ -244,212 +71,111 @@ std::vector<std::string> sceneNames = {
     /* 0x04 */ "0x04",
     /* 0x05 */ "0x05",
     /* 0x06 */ "0x06",
-    // Lone Peak Shrine & Grottos
     /* 0x07 */ "Lone Peak Shrine & Grottos",
-    // Cutscene Scene
     /* 0x08 */ "Cutscene Scene",
     /* 0x09 */ "0x09",
-    // Magic Hags' Potion Shop
     /* 0x0A */ "Magic Hags' Potion Shop",
-    // Majora's Lair
     /* 0x0B */ "Majora's Lair",
-    // Beneath the Graveyard
     /* 0x0C */ "Beneath the Graveyard",
-    // Curiosity Shop
     /* 0x0D */ "Curiosity Shop",
     /* 0x0E */ "0x0E",
     /* 0x0F */ "0x0F",
-    // Mama's House (Ranch House in PAL) & Barn
     /* 0x10 */ "Mama's House & Barn",
-    // Honey & Darling's Shop
     /* 0x11 */ "Honey & Darling's Shop",
-    // The Mayor's Residence
     /* 0x12 */ "The Mayor's Residence",
-    // Ikana Canyon
     /* 0x13 */ "Ikana Canyon",
-    // Pirates' Fortress
     /* 0x14 */ "Pirates' Fortress",
-    // Milk Bar
     /* 0x15 */ "Milk Bar",
-    // Stone Tower Temple
     /* 0x16 */ "Stone Tower Temple",
-    // Treasure Chest Shop
     /* 0x17 */ "Treasure Chest Shop",
-    // Inverted Stone Tower Temple
     /* 0x18 */ "Inverted Stone Tower Temple",
-    // Clock Tower Rooftop
     /* 0x19 */ "Clock Tower Rooftop",
-    // Before Clock Town
     /* 0x1A */ "Before Clock Town",
-    // Woodfall Temple
     /* 0x1B */ "Woodfall Temple",
-    // Path to Mountain Village
     /* 0x1C */ "Path to Mountain Village",
-    // Ancient Castle of Ikana
     /* 0x1D */ "Ancient Castle of Ikana",
-    // Deku Scrub Playground
     /* 0x1E */ "Deku Scrub Playground",
-    // Odolwa's Lair
     /* 0x1F */ "Odolwa's Lair",
-    // Town Shooting Gallery
     /* 0x20 */ "Town Shooting Gallery",
-    // Snowhead Temple
     /* 0x21 */ "Snowhead Temple",
-    // Milk Road
     /* 0x22 */ "Milk Road",
-    // Pirates' Fortress Interior
     /* 0x23 */ "Pirates' Fortress Interior",
-    // Swamp Shooting Gallery
     /* 0x24 */ "Swamp Shooting Gallery",
-    // Pinnacle Rock
     /* 0x25 */ "Pinnacle Rock",
-    // Fairy's Fountain
     /* 0x26 */ "Fairy's Fountain",
-    // Swamp Spider House
     /* 0x27 */ "Swamp Spider House",
-    // Oceanside Spider House
     /* 0x28 */ "Oceanside Spider House",
-    // Astral Observatory
     /* 0x29 */ "Astral Observatory",
-    // Moon Deku Trial
     /* 0x2A */ "Moon Deku Trial",
-    // Deku Palace
     /* 0x2B */ "Deku Palace",
-    // Mountain Smithy
     /* 0x2C */ "Mountain Smithy",
-    // Termina Field
     /* 0x2D */ "Termina Field",
-    // Post Office
     /* 0x2E */ "Post Office",
-    // Marine Research Lab
     /* 0x2F */ "Marine Research Lab",
-    // Beneath the Graveyard (Day 3) and Dampe's House
     /* 0x30 */ "Beneath Graveyard and Dampe's House",
     /* 0x31 */ "0x31",
-    // Goron Shrine
     /* 0x32 */ "Goron Shrine",
-    // Zora Hall
     /* 0x33 */ "Zora Hall",
-    // Trading Post
     /* 0x34 */ "Trading Post",
-    // Romani Ranch
     /* 0x35 */ "Romani Ranch",
-    // Twinmold's Lair
     /* 0x36 */ "Twinmold's Lair",
-    // Great Bay Coast
     /* 0x37 */ "Great Bay Coast",
-    // Zora Cape
     /* 0x38 */ "Zora Cape",
-    // Lottery Shop
     /* 0x39 */ "Lottery Shop",
     /* 0x3A */ "0x3A",
-    // Pirates' Fortress Moat
     /* 0x3B */ "Pirates' Fortress Moat",
-    // Fisherman's Hut
     /* 0x3C */ "Fisherman's Hut",
-    // Goron Shop
     /* 0x3D */ "Goron Shop",
-    // Deku King's Chamber
     /* 0x3E */ "Deku King's Chamber",
-    // Moon Goron Trial
     /* 0x3F */ "Moon Goron Trial",
-    // Road to Southern Swamp
     /* 0x40 */ "Road to Southern Swamp",
-    // Doggy Racetrack
     /* 0x41 */ "Doggy Racetrack",
-    // Cucco Shack
     /* 0x42 */ "Cucco Shack",
-    // Ikana Graveyard
     /* 0x43 */ "Ikana Graveyard",
-    // Goht's Lair
     /* 0x44 */ "Goht's Lair",
-    // Southern Swamp (poison)
     /* 0x45 */ "Southern Swamp (poison)",
-    // Woodfall
     /* 0x46 */ "Woodfall",
-    // Moon Zora Trial
     /* 0x47 */ "Moon Zora Trial",
-    // Goron Village (spring)
     /* 0x48 */ "Goron Village (spring)",
-    // Great Bay Temple
     /* 0x49 */ "Great Bay Temple",
-    // Waterfall Rapids
     /* 0x4A */ "Waterfall Rapids",
-    // Beneath the Well
     /* 0x4B */ "Beneath the Well",
-    // Zora Hall Rooms
     /* 0x4C */ "Zora Hall Rooms",
-    // Goron Village (winter)
     /* 0x4D */ "Goron Village (winter)",
-    // Goron Graveyard
     /* 0x4E */ "Goron Graveyard",
-    // Sakon's Hideout
     /* 0x4F */ "Sakon's Hideout",
-    // Mountain Village (winter)
     /* 0x50 */ "Mountain Village (winter)",
-    // Ghost Hut
     /* 0x51 */ "Ghost Hut",
-    // Deku Shrine
     /* 0x52 */ "Deku Shrine",
-    // Road to Ikana
     /* 0x53 */ "Road to Ikana",
-    // Swordsman's School
     /* 0x54 */ "Swordsman's School",
-    // Music Box House
     /* 0x55 */ "Music Box House",
-    // Igos du Ikana's Lair
     /* 0x56 */ "Igos du Ikana's Lair",
-    // Tourist Information
     /* 0x57 */ "Tourist Information",
-    // Stone Tower
     /* 0x58 */ "Stone Tower",
-    // Inverted Stone Tower
     /* 0x59 */ "Inverted Stone Tower",
-    // Mountain Village (spring)
     /* 0x5A */ "Mountain Village (spring)",
-    // Path to Snowhead
     /* 0x5B */ "Path to Snowhead",
-    // Snowhead
     /* 0x5C */ "Snowhead",
-    // Path to Goron Village (winter)
     /* 0x5D */ "Path to Goron Village (winter)",
-    // Path to Goron Village (spring)
     /* 0x5E */ "Path to Goron Village (spring)",
-    // Gyorg's Lair
     /* 0x5F */ "Gyorg's Lair",
-    // Secret Shrine
     /* 0x60 */ "Secret Shrine",
-    // Stock Pot Inn
     /* 0x61 */ "Stock Pot Inn",
-    // Great Bay Cutscene
     /* 0x62 */ "Great Bay Cutscene",
-    // Clock Tower Interior
     /* 0x63 */ "Clock Tower Interior",
-    // Woods of Mystery
     /* 0x64 */ "Woods of Mystery",
-    // Lost Woods (Intro)
     /* 0x65 */ "Lost Woods (Intro)",
-    // Moon Link Trial
     /* 0x66 */ "Moon Link Trial",
-    // The Moon
     /* 0x67 */ "The Moon",
-    // Bomb Shop
     /* 0x68 */ "Bomb Shop",
-    // Giants' Chamber
     /* 0x69 */ "Giants' Chamber",
-    // Gorman Track
     /* 0x6A */ "Gorman Track",
-    // Goron Racetrack
     /* 0x6B */ "Goron Racetrack",
-    // East Clock Town
     /* 0x6C */ "East Clock Town",
-    // West Clock Town
     /* 0x6D */ "West Clock Town",
-    // North Clock Town
     /* 0x6E */ "North Clock Town",
-    // South Clock Town
     /* 0x6F */ "South Clock Town",
-    // Laundry Pool
     /* 0x70 */ "Laundry Pool",
 
 };

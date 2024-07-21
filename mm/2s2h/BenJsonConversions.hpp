@@ -356,65 +356,72 @@ inline void from_json(const json& j, SaveOptions& saveOptions) {
     j.at("zTargetSetting").get_to(saveOptions.zTargetSetting);
 }
 
-// inline void from_json(const json& j, Color_RGB8& color) {
-//     j.at("r").get_to(color.r);
-//     j.at("g").get_to(color.g);
-//     j.at("b").get_to(color.b);
-// }
+inline void from_json(const json& j, Color_RGB8& color) {
+    j.at("r").get_to(color.r);
+    j.at("g").get_to(color.g);
+    j.at("b").get_to(color.b);
+}
 
-// inline void to_json(json& j, const Color_RGB8& color) {
-//     j = json{
-//         {"r", color.r},
-//         {"g", color.g},
-//         {"b", color.b}
-//     };
-// }
+inline void to_json(json& j, const Color_RGB8& color) {
+    j = json{
+        {"r", color.r},
+        {"g", color.g},
+        {"b", color.b}
+    };
+}
 
-// inline void from_json(const json& j, PlayerData& playerData) {
-//     j.at("playerForm").get_to(playerData.playerForm);
-//     // j.at("playerSound").get_to(playerData.playerSound);
-//     // j.at("sheathType").get_to(playerData.sheathType);
-//     // j.at("leftHandType").get_to(playerData.leftHandType);
-//     // j.at("biggoron_broken").get_to(playerData.biggoron_broken);
-//     // j.at("rightHandType").get_to(playerData.rightHandType);
-//     // j.at("tunicType").get_to(playerData.tunicType);
-//     // j.at("bootsType").get_to(playerData.bootsType);
-//     // j.at("faceType").get_to(playerData.faceType);
-//     // j.at("shieldType").get_to(playerData.shieldType);
-//     // j.at("damageEffect").get_to(playerData.damageEffect);
-//     // j.at("damageValue").get_to(playerData.damageValue);
-// }
+inline void to_json(json& j, const Vec3f& vec) {
+    j = json{ { "x", vec.x }, { "y", vec.y }, { "z", vec.z } };
+}
 
-// inline void to_json(json& j, const PlayerData& playerData) {
-//     j = json{
-//         { "playerForm", playerData.playerForm },
-//         // { "playerSound", playerData.playerSound },
-//         // { "sheathType", playerData.sheathType },
-//         // { "leftHandType", playerData.leftHandType },
-//         // { "biggoron_broken", playerData.biggoron_broken },
-//         // { "rightHandType", playerData.rightHandType },
-//         // { "tunicType", playerData.tunicType },
-//         // { "bootsType", playerData.bootsType },
-//         // { "faceType", playerData.faceType },
-//         // { "shieldType", playerData.shieldType },
-//         // { "damageEffect", playerData.damageEffect },
-//         // { "damageValue", playerData.damageValue },
-//     };
+inline void from_json(const json& j, Vec3f& vec) {
+    j.at("x").get_to(vec.x);
+    j.at("y").get_to(vec.y);
+    j.at("z").get_to(vec.z);
+}
 
-// }
+inline void to_json(json& j, const PosRot& posRot) {
+    j = json{
+        { "pos", posRot.pos },
+        { "rot", posRot.rot },
+    };
+}
 
-// inline void from_json(const json& j, AnchorClient& client) {
-//     j.contains("clientId") ? j.at("clientId").get_to(client.clientId) : client.clientId = 0;
-//     j.contains("clientVersion") ? j.at("clientVersion").get_to(client.clientVersion) : client.clientVersion = "???";
-//     j.contains("name") ? j.at("name").get_to(client.name) : client.name = "???";
-//     j.contains("color") ? j.at("color").get_to(client.color) : client.color = {255, 255, 255};
-//     j.contains("seed") ? j.at("seed").get_to(client.seed) : client.seed = "???";
-//     j.contains("gameComplete") ? j.at("gameComplete").get_to(client.gameComplete) : client.gameComplete = false;
-//     j.contains("scene") ? j.at("scene").get_to(client.scene) : client.scene = SCENE_MAX;
-//     j.contains("roomIndex") ? j.at("roomIndex").get_to(client.roomIndex) : client.roomIndex = 0;
-//     j.contains("entranceIndex") ? j.at("entranceIndex").get_to(client.entranceIndex) : client.entranceIndex = 0;
-//     // j.contains("posRot") ? j.at("posRot").get_to(client.posRot) : client.posRot = { -9999, -9999, -9999, 0, 0, 0 };
-//     j.contains("playerData") ? j.at("playerData").get_to(client.playerData) : client.playerData = { 0 };
-// }
+inline void from_json(const json& j, PosRot& posRot) {
+    j.at("pos").get_to(posRot.pos);
+    j.at("rot").get_to(posRot.rot);
+}
+
+inline void from_json(const json& j, PlayerData& playerData) {
+    j.at("playerForm").get_to(playerData.playerForm);
+    // j.at("playerSound").get_to(playerData.playerSound);
+    // j.at("sheathType").get_to(playerData.sheathType);
+    // j.at("leftHandType").get_to(playerData.leftHandType);
+    // j.at("biggoron_broken").get_to(playerData.biggoron_broken);
+    // j.at("rightHandType").get_to(playerData.rightHandType);
+    // j.at("tunicType").get_to(playerData.tunicType);
+    // j.at("bootsType").get_to(playerData.bootsType);
+    // j.at("faceType").get_to(playerData.faceType);
+    // j.at("shieldType").get_to(playerData.shieldType);
+    // j.at("damageEffect").get_to(playerData.damageEffect);
+    // j.at("damageValue").get_to(playerData.damageValue);
+}
+
+inline void to_json(json& j, const PlayerData& playerData) {
+    j = json{
+        { "playerForm", playerData.playerForm },
+        // { "playerSound", playerData.playerSound },
+        // { "sheathType", playerData.sheathType },
+        // { "leftHandType", playerData.leftHandType },
+        // { "biggoron_broken", playerData.biggoron_broken },
+        // { "rightHandType", playerData.rightHandType },
+        // { "tunicType", playerData.tunicType },
+        // { "bootsType", playerData.bootsType },
+        // { "faceType", playerData.faceType },
+        // { "shieldType", playerData.shieldType },
+        // { "damageEffect", playerData.damageEffect },
+        // { "damageValue", playerData.damageValue },
+    };
+}
 
 #endif // BenJsonConversions_hpp
