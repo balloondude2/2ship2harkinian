@@ -203,7 +203,7 @@ void Anchor_SendClientData() {
     payload["data"]["clientVersion"] = GameInteractorAnchor::clientVersion;
     payload["type"] = "UPDATE_CLIENT_DATA";
 
-    // TODO: Doesn't crash when Anchor is enabled at start, but needs reconnect to work. Maybe call this function on
+    // TODO: Doesn't crash when Anchor is enabled at start, but needs reconnect to work. Maybe call this function again on
     // game load
     if (GameInteractor::IsSaveLoaded()) {
         payload["data"]["fileNum"] = gSaveContext.fileNum;
@@ -283,6 +283,21 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
         }
     }
 
+    if (payload["type"] == "GIVE_ITEM") {
+        //add item to inventory
+        //use proxysaw's demo a few weeks ago
+
+        AnchorClient anchorClient = GameInteractorAnchor::AnchorClients[payload["clientId"].get<uint32_t>()];
+            
+                    Anchor_DisplayMessage({
+                        //.prefix = payload["getItemId"].get<int16_t>(),
+                        .prefix = "item",
+                        .message = "from",
+                        .suffix = anchorClient.name
+                    });
+                
+            
+    }
     // if (payload["type"] == "GIVE_ITEM") {
     //     auto effect = new GameInteractionEffect::GiveItem();
     //     effect->parameters[0] = payload["modId"].get<uint16_t>();
@@ -759,6 +774,18 @@ void Anchor_RegisterHooks() {
 
     //     Anchor_SendClientData();
     // });
+
+    GameInteractor::Instance->RegisterGameHook<GameInteractor::OnItemGive>([](u8 item) {
+
+
+        nlohmann::json payload;
+
+        payload["type"] = "GIVE_ITEM";
+        payload["getItemId"] = item;
+
+        GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
+    }); 
+
     // GameInteractor::Instance->RegisterGameHook<GameInteractor::OnItemReceive>([](GetItemEntry itemEntry) {
     //     if (itemEntry.modIndex == MOD_NONE && ((itemEntry.itemId >= ITEM_KEY_BOSS && itemEntry.itemId <=
     //     ITEM_KEY_SMALL) || itemEntry.itemId == ITEM_SWORD_MASTER)) {
