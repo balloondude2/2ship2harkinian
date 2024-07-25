@@ -22,6 +22,7 @@ extern "C" {
 // extern "C" s16 gEnLinkPuppetId;
 extern PlayState* gPlayState;
 extern SaveContext gSaveContext;
+extern u16 sPersistentCycleWeekEventRegs[ARRAY_COUNT(gSaveContext.save.saveInfo.weekEventReg)];
 }
 
 s16 gEnLinkPuppetId = 0x2B2;
@@ -264,6 +265,12 @@ void GameInteractorAnchor::TransmitJsonToRemote(nlohmann::json payload) {
 void Anchor_ParseSaveStateFromRemote(nlohmann::json payload);
 void Anchor_PushSaveStateToRemote();
 
+bool check_weekeventreg_persistance(u32 flag) {
+    u16 persistBits = sPersistentCycleWeekEventRegs[flag >> 8]; 
+    u16 shifted_flag_bits = 3 << (2 * BIT_FLAG_TO_SHIFT(flag & 0xFF)); 
+    return persistBits & shifted_flag_bits; 
+}
+
 void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
     if (!payload.contains("type")) {
         return;
@@ -288,16 +295,176 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
         //use proxysaw's demo a few weeks ago
 
         AnchorClient anchorClient = GameInteractorAnchor::AnchorClients[payload["clientId"].get<uint32_t>()];
+        int16_t item = payload["getItemId"].get<int16_t>();
+        std::string itemString = std::to_string(item); 
             
                     Anchor_DisplayMessage({
                         //.prefix = payload["getItemId"].get<int16_t>(),
-                        .prefix = "item",
+                        .prefix = itemString,
                         .message = "from",
                         .suffix = anchorClient.name
                     });
                 
             
     }
+
+    if (payload["type"] == "SET_SCENE_FLAG") {
+        
+        s16 sceneId = payload["sceneNum"].get<int16_t>();
+        u32 flagType = payload["flagType"].get<uint32_t>();
+        u32 flag = payload["flag"].get<uint32_t>();
+
+        switch (flagType) {
+            case FLAG_NONE:
+            case FLAG_WEEK_EVENT_REG:
+            case FLAG_EVENT_INF:
+            case FLAG_SCENES_VISIBLE:
+            case FLAG_OWL_ACTIVATION:
+                break;
+            case FLAG_PERM_SCENE_CHEST:
+                if (gPlayState->sceneId == sceneId) {
+                    Flags_SetTreasure(gPlayState, flag);
+                } else {
+                    gSaveContext.save.saveInfo.permanentSceneFlags[sceneId].chest |= (1 << flag);
+                }
+                break;
+            case FLAG_PERM_SCENE_SWITCH:
+                if (gPlayState->sceneId == sceneId) {
+                    Flags_SetSwitch(gPlayState, flag);
+                } else {
+                    //gSaveContext.save.saveInfo.permanentSceneFlags[sceneId].chest |= (1 << flag);
+                }
+                break;
+            case FLAG_PERM_SCENE_CLEARED_ROOM:
+                // What is difference between clear and cleartemp?
+                if (gPlayState->sceneId == sceneId) {
+                    Flags_SetClear(gPlayState, flag);
+                } else {
+                    //gSaveContext.save.saveInfo.permanentSceneFlags[sceneId].chest |= (1 << flag);
+                }
+                break;
+            case FLAG_PERM_SCENE_COLLECTIBLE:
+                if (gPlayState->sceneId == sceneId) {
+                    Flags_SetCollectible(gPlayState, flag);
+                } else {
+                    gSaveContext.cycleSceneFlags[sceneId].collectible |= (1 << flag);
+                }
+                break;
+            case FLAG_PERM_SCENE_UNK_14:
+                // if (gPlayState->sceneId == sceneId) {
+                //     Flags_SetTreasure(gPlayState, flag);
+                // } else {
+                //     gSaveContext.save.saveInfo.permanentSceneFlags[sceneId].chest |= (1 << flag);
+                // }
+                break;
+            case FLAG_PERM_SCENE_ROOMS:
+                // if (gPlayState->sceneId == sceneId) {
+                //     Flags_SetTreasure(gPlayState, flag);
+                // } else {
+                //     gSaveContext.save.saveInfo.permanentSceneFlags[sceneId].chest |= (1 << flag);
+                // }
+                // break;
+            case FLAG_CYCL_SCENE_CHEST:
+                if (gPlayState->sceneId == sceneId) {
+                    Flags_SetTreasure(gPlayState, flag);
+                } else {
+                    gSaveContext.cycleSceneFlags[sceneId].chest |= (1 << flag);
+                }
+                break;
+            case FLAG_CYCL_SCENE_SWITCH:
+                if (gPlayState->sceneId == sceneId) {
+                    Flags_SetSwitch(gPlayState, flag);
+                } else {
+                    //gSaveContext.cycleSceneFlags[sceneId].chest |= (1 << flag);
+                }
+                break;
+            case FLAG_CYCL_SCENE_CLEARED_ROOM:
+                if (gPlayState->sceneId == sceneId) {
+                    Flags_SetClear(gPlayState, flag);
+                } else {
+                    //gSaveContext.cycleSceneFlags[sceneId].chest |= (1 << flag);
+                }
+                break;
+            case FLAG_CYCL_SCENE_COLLECTIBLE:
+                if (gPlayState->sceneId == sceneId) {
+                    Flags_SetCollectible(gPlayState, flag);
+                    //TODO: Find way to kill associated actor
+                    Actor* actor = gPlayState->actorCtx.actorLists[ACTORCAT_MISC].first;
+                    while (actor != NULL) {
+                        // id for heart pieces (at least free standing in north and south clock town)
+                        // are there cases where there are multiple ACTORCAT_MISC in a scene?
+                        // can we send actor data when the scene flag data?
+                        if (actor->id == 14) {
+                            Actor_Kill(actor);
+                        }
+                        actor = actor->next;
+                    }
+                } else {
+                    gSaveContext.cycleSceneFlags[sceneId].collectible |= (1 << flag);
+                }
+                break;
+            default:
+                break;
+        }
+
+        //AnchorClient anchorClient = GameInteractorAnchor::AnchorClients[payload["clientId"].get<uint32_t>()];
+        std::string s1 = std::to_string(sceneId); 
+        std::string s2 = std::to_string(flagType); 
+        std::string s3 = std::to_string(flag); 
+            
+                    Anchor_DisplayMessage({
+                        //.prefix = payload["getItemId"].get<int16_t>(),
+                        .prefix = "set scene flag", //108
+                        .message = s2, //11
+                        .suffix = s3 //10
+                    });
+    }
+    if (payload["type"] == "SET_FLAG") {
+        //s16 sceneId = payload["sceneNum"].get<int16_t>();
+        u32 flagType = payload["flagType"].get<uint32_t>();
+        u32 flag = payload["flag"].get<uint32_t>();
+        switch (flagType) {
+            case FLAG_NONE:
+                break;
+            case FLAG_WEEK_EVENT_REG:
+                Flags_SetWeekEventReg(flag);
+                break;
+            case FLAG_EVENT_INF:
+            case FLAG_SCENES_VISIBLE:
+            case FLAG_OWL_ACTIVATION:
+            case FLAG_PERM_SCENE_CHEST:
+            case FLAG_PERM_SCENE_SWITCH:
+            case FLAG_PERM_SCENE_CLEARED_ROOM:
+            case FLAG_PERM_SCENE_COLLECTIBLE:
+            case FLAG_PERM_SCENE_UNK_14:
+            case FLAG_PERM_SCENE_ROOMS:
+            case FLAG_CYCL_SCENE_CHEST:
+            case FLAG_CYCL_SCENE_SWITCH:
+            case FLAG_CYCL_SCENE_CLEARED_ROOM:
+            case FLAG_CYCL_SCENE_COLLECTIBLE:
+            default:
+                break;
+        }
+
+        //AnchorClient anchorClient = GameInteractorAnchor::AnchorClients[payload["clientId"].get<uint32_t>()];
+        //std::string s1 = std::to_string(sceneId); 
+        std::string s2 = std::to_string(flagType); 
+        std::string s3 = std::to_string(flag); 
+            
+                    Anchor_DisplayMessage({
+                        //.prefix = payload["getItemId"].get<int16_t>(),
+                        .prefix = "set flag", //108
+                        .message = s2, //11
+                        .suffix = s3 //10
+                    });
+    }
+    if (payload["type"] == "UNSET_SCENE_FLAG") {
+        
+    }
+    if (payload["type"] == "UNSET_FLAG") {
+        
+    }
+
     // if (payload["type"] == "GIVE_ITEM") {
     //     auto effect = new GameInteractionEffect::GiveItem();
     //     effect->parameters[0] = payload["modId"].get<uint16_t>();
@@ -729,9 +896,9 @@ void Anchor_RefreshClientActors() {
     uint32_t i = 0;
     for (auto [clientId, client] : GameInteractorAnchor::AnchorClients) {
         GameInteractorAnchor::ActorIndexToClientId.push_back(clientId);
-        if (Actor_Spawn(&gPlayState->actorCtx, gPlayState, gEnLinkPuppetId, client.posRot.pos.x, client.posRot.pos.y,
+        auto fairy = Actor_Spawn(&gPlayState->actorCtx, gPlayState, gEnLinkPuppetId, client.posRot.pos.x, client.posRot.pos.y,
                         client.posRot.pos.z, client.posRot.rot.x, client.posRot.rot.y, client.posRot.rot.z,
-                        3 + i) == NULL) {}
+                        3 + i);
         // Todo: This was removed in player models branch
         // NameTag_RegisterForActor(fairy, client.name.c_str());
         i++;
@@ -813,62 +980,76 @@ void Anchor_RegisterHooks() {
 
     //     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
     // });
-    // GameInteractor::Instance->RegisterGameHook<GameInteractor::OnSceneFlagSet>([](int16_t sceneNum, int16_t flagType,
-    // int16_t flag) {
-    //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded())
-    //     return; nlohmann::json payload;
+    GameInteractor::Instance->RegisterGameHook<GameInteractor::OnSceneFlagSet>([](int16_t sceneNum, FlagType
+    flagType, uint32_t flag) {
+        if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) {
+            return; 
+        }
 
-    //     payload["type"] = "SET_SCENE_FLAG";
-    //     payload["sceneNum"] = sceneNum;
-    //     payload["flagType"] = flagType;
-    //     payload["flag"] = flag;
-    //     payload["quiet"] = true;
+        nlohmann::json payload;
 
-    //     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
-    // });
-    // GameInteractor::Instance->RegisterGameHook<GameInteractor::OnFlagSet>([](int16_t flagType, int16_t flag) {
-    //     if (flagType == FLAG_INF_TABLE && flag == INFTABLE_SWORDLESS) {
-    //         return;
-    //     }
+        payload["type"] = "SET_SCENE_FLAG";
+        payload["sceneNum"] = sceneNum;
+        payload["flagType"] = flagType;
+        payload["flag"] = flag;
+        payload["quiet"] = false;
 
-    //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded())
-    //     return; nlohmann::json payload;
+        GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
+    });
+    GameInteractor::Instance->RegisterGameHook<GameInteractor::OnFlagSet>([](FlagType flagType, uint32_t flag) {
+        if (flagType == FLAG_WEEK_EVENT_REG && flag == WEEKEVENTREG_92_80) {
+            return;
+        }
 
-    //     payload["type"] = "SET_FLAG";
-    //     payload["flagType"] = flagType;
-    //     payload["flag"] = flag;
-    //     payload["quiet"] = true;
+        if (flagType == FLAG_WEEK_EVENT_REG && !check_weekeventreg_persistance(flag)) {
+            LUSLOG_DEBUG("weekeventreg not persistant", NULL);
+            return;
+        }
 
-    //     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
-    // });
-    // GameInteractor::Instance->RegisterGameHook<GameInteractor::OnSceneFlagUnset>([](int16_t sceneNum, int16_t
-    // flagType, int16_t flag) {
-    //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded())
-    //     return; nlohmann::json payload;
+        if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) {
+            return;
+        }
+        nlohmann::json payload;
 
-    //     payload["type"] = "UNSET_SCENE_FLAG";
-    //     payload["sceneNum"] = sceneNum;
-    //     payload["flagType"] = flagType;
-    //     payload["flag"] = flag;
-    //     payload["quiet"] = true;
+        payload["type"] = "SET_FLAG";
+        payload["flagType"] = flagType;
+        payload["flag"] = flag;
+        payload["quiet"] = false;
 
-    //     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
-    // });
-    // GameInteractor::Instance->RegisterGameHook<GameInteractor::OnFlagUnset>([](int16_t flagType, int16_t flag) {
-    //     if (flagType == FLAG_INF_TABLE && flag == INFTABLE_SWORDLESS) {
-    //         return;
-    //     }
+        GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
+    });
+    GameInteractor::Instance->RegisterGameHook<GameInteractor::OnSceneFlagUnset>([](int16_t sceneNum, FlagType
+    flagType, uint32_t flag) {
+        if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) {
+            return; 
+        }
+        nlohmann::json payload;
 
-    //     if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded())
-    //     return; nlohmann::json payload;
+        payload["type"] = "UNSET_SCENE_FLAG";
+        payload["sceneNum"] = sceneNum;
+        payload["flagType"] = flagType;
+        payload["flag"] = flag;
+        payload["quiet"] = false;
 
-    //     payload["type"] = "UNSET_FLAG";
-    //     payload["flagType"] = flagType;
-    //     payload["flag"] = flag;
-    //     payload["quiet"] = true;
+        GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
+    });
+    GameInteractor::Instance->RegisterGameHook<GameInteractor::OnFlagUnset>([](FlagType flagType, uint32_t flag) {
+        if (flagType == FLAG_WEEK_EVENT_REG && flag == WEEKEVENTREG_92_80) {
+            return;
+        }
 
-    //     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
-    // });
+        if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) {
+            return; 
+        }
+        nlohmann::json payload;
+
+        payload["type"] = "UNSET_FLAG";
+        payload["flagType"] = flagType;
+        payload["flag"] = flag;
+        payload["quiet"] = false;
+
+        GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
+    });
     GameInteractor::Instance->RegisterGameHookForID<GameInteractor::OnActorUpdate>(ACTOR_PLAYER, [](Actor* actor) {
         uint32_t currentPlayerCount = 0;
         for (auto& [clientId, client] : GameInteractorAnchor::AnchorClients) {
