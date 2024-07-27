@@ -280,6 +280,29 @@ bool check_weekeventreg_persistance(u32 flag) {
     return persistBits & shifted_flag_bits; 
 }
 
+bool check_sceneflag_persistance(int16_t sceneNum, FlagType
+    flagType, uint32_t flag) {
+    // TODO: What flags do we send?
+        switch (flagType) {
+            case FLAG_CYCL_SCENE_CHEST:
+                return (Flags_GetTreasure(gPlayState, flag) & sPersistentCycleSceneFlags[sceneNum].chest);
+            case FLAG_CYCL_SCENE_SWITCH:
+                if ((flag & ~0x1F) >> 5 == 0) {
+                    return (Flags_GetSwitch(gPlayState, flag) & sPersistentCycleSceneFlags[sceneNum].switch0);
+                } else if ((flag & ~0x1F) >> 5 == 1) {
+                    return (Flags_GetSwitch(gPlayState, flag) & sPersistentCycleSceneFlags[sceneNum].switch1);
+                } 
+                break;
+            case FLAG_CYCL_SCENE_CLEARED_ROOM:
+                break;
+            case FLAG_CYCL_SCENE_COLLECTIBLE:
+                return (Flags_GetCollectible(gPlayState, flag) & sPersistentCycleSceneFlags[sceneNum].collectible);
+            default:
+                break;
+        }
+        return false;
+}
+
 void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
     if (!payload.contains("type")) {
         return;
@@ -982,26 +1005,9 @@ void Anchor_RegisterHooks() {
         }
 
         // TODO: What flags do we send?
-        switch (flagType) {
-            case FLAG_CYCL_SCENE_CHEST:
-                if (!(Flags_GetTreasure(gPlayState, flag) & sPersistentCycleSceneFlags[sceneNum].chest)) {
-                    return;
-                }
-            case FLAG_CYCL_SCENE_SWITCH:
-                break;
-            case FLAG_CYCL_SCENE_CLEARED_ROOM:
-                break;
-            case FLAG_CYCL_SCENE_COLLECTIBLE:
-                if (!(Flags_GetCollectible(gPlayState, flag) & sPersistentCycleSceneFlags[sceneNum].collectible)) {
-                    return;
-                }
-            default:
-                break;
+        if (!check_sceneflag_persistance(sceneNum, flagType, flag)) {
+            return;
         }
-
-        
-
-        LUSLOG_DEBUG("scene flag: %x", flag);
 
         nlohmann::json payload;
 
@@ -1040,6 +1046,10 @@ void Anchor_RegisterHooks() {
         if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) {
             return; 
         }
+
+        if (!check_sceneflag_persistance(sceneNum, flagType, flag)) {
+            return;
+        }
         nlohmann::json payload;
 
         payload["type"] = "UNSET_SCENE_FLAG";
@@ -1052,6 +1062,11 @@ void Anchor_RegisterHooks() {
     });
     GameInteractor::Instance->RegisterGameHook<GameInteractor::OnFlagUnset>([](FlagType flagType, uint32_t flag) {
         if (flagType == FLAG_WEEK_EVENT_REG && flag == WEEKEVENTREG_92_80) {
+            return;
+        }
+
+        if (flagType == FLAG_WEEK_EVENT_REG && !check_weekeventreg_persistance(flag)) {
+            LUSLOG_DEBUG("weekeventreg not persistant", NULL);
             return;
         }
 
