@@ -13,6 +13,14 @@
 #include "2s2h/BenJsonConversions.hpp"
 // mm\2s2h\BenJsonConversions.hpp
 
+// copied from z_sram_nes. Can probably just use the struct there
+typedef struct PersistentCycleSceneFlags {
+    /* 0x0 */ u32 switch0;
+    /* 0x4 */ u32 switch1;
+    /* 0x8 */ u32 chest;
+    /* 0xC */ u32 collectible;
+} PersistentCycleSceneFlags; // size = 0x10
+
 extern "C" {
 #include <variables.h>
 #include "macros.h"
@@ -23,6 +31,7 @@ extern "C" {
 extern PlayState* gPlayState;
 extern SaveContext gSaveContext;
 extern u16 sPersistentCycleWeekEventRegs[ARRAY_COUNT(gSaveContext.save.saveInfo.weekEventReg)];
+extern PersistentCycleSceneFlags sPersistentCycleSceneFlags[SCENE_MAX];
 }
 
 s16 gEnLinkPuppetId = 0x2B2;
@@ -320,87 +329,70 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
             case FLAG_EVENT_INF:
             case FLAG_SCENES_VISIBLE:
             case FLAG_OWL_ACTIVATION:
+                // not scene flags
                 break;
             case FLAG_PERM_SCENE_CHEST:
-                if (gPlayState->sceneId == sceneId) {
-                    Flags_SetTreasure(gPlayState, flag);
-                } else {
-                    gSaveContext.save.saveInfo.permanentSceneFlags[sceneId].chest |= (1 << flag);
-                }
-                break;
             case FLAG_PERM_SCENE_SWITCH:
-                if (gPlayState->sceneId == sceneId) {
-                    Flags_SetSwitch(gPlayState, flag);
-                } else {
-                    //gSaveContext.save.saveInfo.permanentSceneFlags[sceneId].chest |= (1 << flag);
-                }
-                break;
             case FLAG_PERM_SCENE_CLEARED_ROOM:
-                // What is difference between clear and cleartemp?
-                if (gPlayState->sceneId == sceneId) {
-                    Flags_SetClear(gPlayState, flag);
-                } else {
-                    //gSaveContext.save.saveInfo.permanentSceneFlags[sceneId].chest |= (1 << flag);
-                }
-                break;
             case FLAG_PERM_SCENE_COLLECTIBLE:
-                if (gPlayState->sceneId == sceneId) {
-                    Flags_SetCollectible(gPlayState, flag);
-                } else {
-                    gSaveContext.cycleSceneFlags[sceneId].collectible |= (1 << flag);
-                }
-                break;
             case FLAG_PERM_SCENE_UNK_14:
-                // if (gPlayState->sceneId == sceneId) {
-                //     Flags_SetTreasure(gPlayState, flag);
-                // } else {
-                //     gSaveContext.save.saveInfo.permanentSceneFlags[sceneId].chest |= (1 << flag);
-                // }
-                break;
             case FLAG_PERM_SCENE_ROOMS:
-                // if (gPlayState->sceneId == sceneId) {
-                //     Flags_SetTreasure(gPlayState, flag);
-                // } else {
-                //     gSaveContext.save.saveInfo.permanentSceneFlags[sceneId].chest |= (1 << flag);
-                // }
-                // break;
+                // scene flag hook never sends PERM flags
+                break;
             case FLAG_CYCL_SCENE_CHEST:
                 if (gPlayState->sceneId == sceneId) {
-                    Flags_SetTreasure(gPlayState, flag);
+                    // Flags_SetTreasure triggers hook, which we don't want
+                    // Flags_SetTreasure(gPlayState, flag);
+                    gPlayState->actorCtx.sceneFlags.chest |= (1 << flag);
                 } else {
                     gSaveContext.cycleSceneFlags[sceneId].chest |= (1 << flag);
                 }
                 break;
             case FLAG_CYCL_SCENE_SWITCH:
                 if (gPlayState->sceneId == sceneId) {
-                    Flags_SetSwitch(gPlayState, flag);
+                    // Flags_SetSwitch(gPlayState, flag);
+                    if ((flag > SWITCH_FLAG_NONE) && (flag < 0x80)) {
+                        gPlayState->actorCtx.sceneFlags.switches[(flag & ~0x1F) >> 5] |= 1 << (flag & 0x1F);
+                    }
                 } else {
-                    //gSaveContext.cycleSceneFlags[sceneId].chest |= (1 << flag);
+                    if ((flag & ~0x1F) >> 5 == 0) {
+                        gSaveContext.cycleSceneFlags[sceneId].switch0 |= (1 << (flag & 0x1F));
+                    } else if ((flag & ~0x1F) >> 5 == 1) {
+                        gSaveContext.cycleSceneFlags[sceneId].switch1 |= (1 << (flag & 0x1F));
+                    } else {
+                        // It looks like temporary switch (switch[2] and [3]) data is stored in respawn stuff?
+                        LUSLOG_DEBUG("Nothing happend with flag index: %x", (flag & ~0x1F) >> 5);
+                    }
                 }
                 break;
             case FLAG_CYCL_SCENE_CLEARED_ROOM:
+                // what's the difference between clear and clearTemp?
                 if (gPlayState->sceneId == sceneId) {
                     Flags_SetClear(gPlayState, flag);
                 } else {
-                    //gSaveContext.cycleSceneFlags[sceneId].chest |= (1 << flag);
+                    gSaveContext.cycleSceneFlags[sceneId].clearedRoom |= (1 << flag);
                 }
                 break;
             case FLAG_CYCL_SCENE_COLLECTIBLE:
                 if (gPlayState->sceneId == sceneId) {
-                    Flags_SetCollectible(gPlayState, flag);
-                    //TODO: Find way to kill associated actor
+                    // Flags_SetCollectible(gPlayState, flag);
+                    if ((flag > 0) && (flag < 0x80)) {
+                        gPlayState->actorCtx.sceneFlags.collectible[(flag & ~0x1F) >> 5] |= 1 << (flag & 0x1F);
+                    }
+
+
+                    //TODO: Are there any other actor categories to check and kill?
                     Actor* actor = gPlayState->actorCtx.actorLists[ACTORCAT_MISC].first;
                     while (actor != NULL) {
-                        // id for heart pieces (at least free standing in north and south clock town)
-                        // are there cases where there are multiple ACTORCAT_MISC in a scene?
-                        // can we send actor data when the scene flag data?
-                        if (actor->id == 14) {
+                        //Do we want to check that actorId = 0x0E before casting to EnItem00?
+                        EnItem00* item = ((EnItem00*)actor);
+                        if (item->collectibleFlag == flag) {
                             Actor_Kill(actor);
                         }
                         actor = actor->next;
                     }
                 } else {
-                    gSaveContext.cycleSceneFlags[sceneId].collectible |= (1 << flag);
+                    gSaveContext.cycleSceneFlags[sceneId].collectible |= (1 << (flag & 0x1F));
                 }
                 break;
             default:
@@ -430,8 +422,10 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
                 Flags_SetWeekEventReg(flag);
                 break;
             case FLAG_EVENT_INF:
+                // do we ever want to set any of these?
             case FLAG_SCENES_VISIBLE:
             case FLAG_OWL_ACTIVATION:
+                // scene flags never sent with hook
             case FLAG_PERM_SCENE_CHEST:
             case FLAG_PERM_SCENE_SWITCH:
             case FLAG_PERM_SCENE_CLEARED_ROOM:
@@ -900,6 +894,7 @@ void Anchor_RefreshClientActors() {
                         client.posRot.pos.z, client.posRot.rot.x, client.posRot.rot.y, client.posRot.rot.z,
                         3 + i);
         // Todo: This was removed in player models branch
+        // TODO: Add nametag stuff
         // NameTag_RegisterForActor(fairy, client.name.c_str());
         i++;
     }
@@ -986,6 +981,28 @@ void Anchor_RegisterHooks() {
             return; 
         }
 
+        // TODO: What flags do we send?
+        switch (flagType) {
+            case FLAG_CYCL_SCENE_CHEST:
+                if (!(Flags_GetTreasure(gPlayState, flag) & sPersistentCycleSceneFlags[sceneNum].chest)) {
+                    return;
+                }
+            case FLAG_CYCL_SCENE_SWITCH:
+                break;
+            case FLAG_CYCL_SCENE_CLEARED_ROOM:
+                break;
+            case FLAG_CYCL_SCENE_COLLECTIBLE:
+                if (!(Flags_GetCollectible(gPlayState, flag) & sPersistentCycleSceneFlags[sceneNum].collectible)) {
+                    return;
+                }
+            default:
+                break;
+        }
+
+        
+
+        LUSLOG_DEBUG("scene flag: %x", flag);
+
         nlohmann::json payload;
 
         payload["type"] = "SET_SCENE_FLAG";
@@ -1050,6 +1067,29 @@ void Anchor_RegisterHooks() {
 
         GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
     });
+
+    // GameInteractor::Instance->RegisterGameHook<GameInteractor::OnActorKill>([](Actor* actor) {
+        
+    //     if (actor->id = 14) {
+    //         LUSLOG_DEBUG("actor id: %x", actor->id);
+    //         EnItem00* item = ((EnItem00*)actor);
+    //         LUSLOG_DEBUG("actor collect flag: %x", item->collectibleFlag);
+    //     }
+        
+        
+        // if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) {
+        //     return; 
+        // }
+        // nlohmann::json payload;
+
+        // payload["type"] = "UNSET_FLAG";
+        // payload["flagType"] = flagType;
+        // payload["flag"] = flag;
+        // payload["quiet"] = false;
+
+        // GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
+    // });
+
     GameInteractor::Instance->RegisterGameHookForID<GameInteractor::OnActorUpdate>(ACTOR_PLAYER, [](Actor* actor) {
         uint32_t currentPlayerCount = 0;
         for (auto& [clientId, client] : GameInteractorAnchor::AnchorClients) {
