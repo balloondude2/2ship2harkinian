@@ -71,17 +71,8 @@ PlayerData Anchor_GetClientPlayerData(uint32_t actorIndex);
 Color_RGB8 Anchor_GetClientColor(uint32_t actorIndex);
 void Anchor_RefreshClientActors();
 void Anchor_SendClientActors();
-// void Anchor_EntranceDiscovered(uint16_t entranceIndex);
-// void Anchor_UpdateCheckData(uint32_t locationIndex);
-// void Anchor_UpdateBeansBought(uint8_t amount);
-// void Anchor_UpdateBeansCount(uint8_t amount);
-// void Anchor_ConsumeAdultTradeItem(uint8_t itemId);
-// void Anchor_UpdateKeyCount(int16_t sceneNum, int8_t amount);
-// void Anchor_GiveDungeonItem(int16_t sceneNum, uint16_t itemId);
-// void Anchor_DamagePlayer(uint32_t actorIndex, u8 damageEffect, u8 damageValue);
-// void Anchor_GameComplete();
-// void Anchor_RequestTeleport(uint32_t clientId);
-// void Anchor_TeleportToPlayer(uint32_t clientId);
+void Anchor_RequestTeleport(uint32_t clientId);
+void Anchor_TeleportToPlayer(uint32_t clientId);
 
 #ifdef __cplusplus
 }
