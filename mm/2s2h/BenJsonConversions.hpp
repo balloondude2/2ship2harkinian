@@ -319,7 +319,7 @@ inline void to_json(json& j, const SaveContext& saveContext) {
         { "bottleTimerTimeLimits", saveContext.bottleTimerTimeLimits },
         { "bottleTimerCurTimes", saveContext.bottleTimerCurTimes },
         { "bottleTimerPausedOsTimes", saveContext.bottleTimerPausedOsTimes },
-        { "pictoPhotoI5", saveContext.pictoPhotoI5 },
+        //{ "pictoPhotoI5", saveContext.pictoPhotoI5 },
     };
 }
 
@@ -335,7 +335,7 @@ inline void from_json(const json& j, SaveContext& saveContext) {
     j.at("bottleTimerTimeLimits").get_to(saveContext.bottleTimerTimeLimits);
     j.at("bottleTimerCurTimes").get_to(saveContext.bottleTimerCurTimes);
     j.at("bottleTimerPausedOsTimes").get_to(saveContext.bottleTimerPausedOsTimes);
-    j.at("pictoPhotoI5").get_to(saveContext.pictoPhotoI5);
+    //j.at("pictoPhotoI5").get_to(saveContext.pictoPhotoI5);
 }
 
 inline void to_json(json& j, const SaveOptions& saveOptions) {

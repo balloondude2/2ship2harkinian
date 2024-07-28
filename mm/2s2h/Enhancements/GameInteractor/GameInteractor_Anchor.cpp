@@ -1,6 +1,6 @@
 
-// TODOs: send and receive flags/items; mabye update ben overlay; clean up organization (move json to jsonConversions
-// file); nametags from Archez's PR
+// TODOs: send and receive flags/items; update ben overlay; clean up organization;
+// nametags from Archez's PR
 
 #include "GameInteractor_Anchor.h"
 #include <libultraship/libultraship.h>
@@ -505,12 +505,12 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
             }
         }
     }
-    // if (payload["type"] == "PUSH_SAVE_STATE" && GameInteractor::IsSaveLoaded()) {
-    //     Anchor_ParseSaveStateFromRemote(payload);
-    // }
-    // if (payload["type"] == "REQUEST_SAVE_STATE" && GameInteractor::IsSaveLoaded()) {
-    //     Anchor_PushSaveStateToRemote();
-    // }
+    if (payload["type"] == "PUSH_SAVE_STATE" && GameInteractor::IsSaveLoaded()) {
+        Anchor_ParseSaveStateFromRemote(payload);
+    }
+    if (payload["type"] == "REQUEST_SAVE_STATE" && GameInteractor::IsSaveLoaded()) {
+        Anchor_PushSaveStateToRemote();
+    }
     if (payload["type"] == "ALL_CLIENT_DATA") {
         std::vector<AnchorClient> newClients = payload["clients"].get<std::vector<AnchorClient>>();
 
@@ -601,7 +601,8 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
 }
 
 void Anchor_PushSaveStateToRemote() {
-    nlohmann::json payload; // = gSaveContext;
+    //TODO: This sends way more data than needed. Particularly pictoPhoto
+    nlohmann::json payload = gSaveContext;
     payload["type"] = "PUSH_SAVE_STATE";
     // manually update current scene flags
     // payload["sceneFlags"][gPlayState->sceneNum]["chest"] = gPlayState->actorCtx.flags.chest;
@@ -620,28 +621,33 @@ void Anchor_RequestSaveStateFromRemote() {
 }
 
 void Anchor_ParseSaveStateFromRemote(nlohmann::json payload){
-    // SaveContext loadedData = payload.get<SaveContext>();
+    SaveContext loadedData = payload.get<SaveContext>();
 
-    // gSaveContext.healthCapacity = loadedData.healthCapacity;
-    // gSaveContext.magicLevel = loadedData.magicLevel;
-    // gSaveContext.magicCapacity = gSaveContext.magic = loadedData.magicCapacity;
-    // gSaveContext.isMagicAcquired = loadedData.isMagicAcquired;
-    // gSaveContext.isDoubleMagicAcquired = loadedData.isDoubleMagicAcquired;
-    // gSaveContext.isDoubleDefenseAcquired = loadedData.isDoubleDefenseAcquired;
+    gSaveContext.save.saveInfo.playerData.healthCapacity = loadedData.save.saveInfo.playerData.healthCapacity;
+    //TODO: Magic is messed up. Maybe check save editor to see what fields it touches
+    gSaveContext.save.saveInfo.playerData.magicLevel = loadedData.save.saveInfo.playerData.magicLevel;
+    gSaveContext.magicCapacity = loadedData.magicCapacity;
+    gSaveContext.save.saveInfo.playerData.magic  = loadedData.save.saveInfo.playerData.magic;
+    gSaveContext.save.saveInfo.playerData.isMagicAcquired = loadedData.save.saveInfo.playerData.isMagicAcquired;
+    gSaveContext.save.saveInfo.playerData.isDoubleMagicAcquired = loadedData.save.saveInfo.playerData.isDoubleMagicAcquired;
+    gSaveContext.save.saveInfo.playerData.doubleDefense = loadedData.save.saveInfo.playerData.doubleDefense;
     // gSaveContext.bgsFlag = loadedData.bgsFlag;
-    // gSaveContext.swordHealth = loadedData.swordHealth;
+    gSaveContext.save.saveInfo.playerData.swordHealth = loadedData.save.saveInfo.playerData.swordHealth;
     // // TODO: Packet to live update this
     // gSaveContext.adultTradeItems = loadedData.adultTradeItems;
 
-    // for (int i = 0; i < 124; i++) {
-    //     gSaveContext.sceneFlags[i] = loadedData.sceneFlags[i];
-    //     if (gPlayState->sceneNum == i) {
-    //         gPlayState->actorCtx.flags.chest = loadedData.sceneFlags[i].chest;
-    //         gPlayState->actorCtx.flags.swch = loadedData.sceneFlags[i].swch;
-    //         gPlayState->actorCtx.flags.clear = loadedData.sceneFlags[i].clear;
-    //         gPlayState->actorCtx.flags.collect = loadedData.sceneFlags[i].collect;
-    //     }
-    // }
+    //TODO: I doubt this is right
+    for (int i = 0; i < SCENE_MAX; i++) {
+        gSaveContext.save.saveInfo.permanentSceneFlags[i] = loadedData.save.saveInfo.permanentSceneFlags[i];
+        if (gPlayState->sceneId == i) {
+            gPlayState->actorCtx.sceneFlags.chest = loadedData.save.saveInfo.permanentSceneFlags[i].chest;
+            gPlayState->actorCtx.sceneFlags.switches[0] = loadedData.save.saveInfo.permanentSceneFlags[i].switch0;
+            gPlayState->actorCtx.sceneFlags.switches[1] = loadedData.save.saveInfo.permanentSceneFlags[i].switch1;
+            gPlayState->actorCtx.sceneFlags.clearedRoom = loadedData.save.saveInfo.permanentSceneFlags[i].clearedRoom;
+            //I'm not sure how to translate the u32 colllectible in saveInfo to the u32[4] in actorCtx
+            gPlayState->actorCtx.sceneFlags.collectible[0] = loadedData.save.saveInfo.permanentSceneFlags[i].collectible;
+        }
+    }
 
     // for (int i = 0; i < 14; i++) {
     //     gSaveContext.eventChkInf[i] = loadedData.eventChkInf[i];
@@ -693,8 +699,8 @@ void Anchor_ParseSaveStateFromRemote(nlohmann::json payload){
     //     }
     // }
 
-    // gSaveContext.inventory = loadedData.inventory;
-    // Anchor_DisplayMessage({ .message = "State loaded from remote!" });
+    gSaveContext.save.saveInfo.inventory = loadedData.save.saveInfo.inventory;
+    Anchor_DisplayMessage({ .message = "State loaded from remote!" });
 };
 
 AnchorClient* Anchor_GetClientByActorIndex(uint32_t actorIndex) {
