@@ -812,6 +812,7 @@ void Anchor_RegisterHooks() {
         if (GameInteractor::Instance->IsSaveLoaded()) {
             // Player loaded into file
             if (lastSceneNum == SCENE_MAX) {
+                // TODO: I think this is firing an extra time?
                 Anchor_RequestSaveStateFromRemote();
             }
 
