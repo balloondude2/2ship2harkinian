@@ -604,6 +604,7 @@ void Anchor_PushSaveStateToRemote() {
     //TODO: This sends way more data than needed. Particularly pictoPhoto
     nlohmann::json payload = gSaveContext;
     payload["type"] = "PUSH_SAVE_STATE";
+    //TODO: update these for 2s2h
     // manually update current scene flags
     // payload["sceneFlags"][gPlayState->sceneNum]["chest"] = gPlayState->actorCtx.flags.chest;
     // payload["sceneFlags"][gPlayState->sceneNum]["swch"] = gPlayState->actorCtx.flags.swch;
@@ -641,7 +642,6 @@ void Anchor_ParseSaveStateFromRemote(nlohmann::json payload){
 
     gSaveContext.save.saveInfo.playerData.doubleDefense = loadedData.save.saveInfo.playerData.doubleDefense;
     // gSaveContext.bgsFlag = loadedData.bgsFlag;
-    gSaveContext.save.saveInfo.playerData.swordHealth = loadedData.save.saveInfo.playerData.swordHealth;
     // // TODO: Packet to live update this
     // gSaveContext.adultTradeItems = loadedData.adultTradeItems;
 
@@ -694,13 +694,12 @@ void Anchor_ParseSaveStateFromRemote(nlohmann::json payload){
     //     }
     // }
 
-    // // Restore master sword state
-    // u8 hasMasterSword = CHECK_OWNED_EQUIP(EQUIP_SWORD, 1);
-    // if (hasMasterSword) {
-    //     loadedData.inventory.equipment |= 0x2;
-    // } else {
-    //     loadedData.inventory.equipment &= ~0x2;
-    // }
+    
+    // Set Sword and Sheild
+    gSaveContext.save.saveInfo.equips.equipment = loadedData.save.saveInfo.equips.equipment;
+    gSaveContext.save.saveInfo.playerData.swordHealth = loadedData.save.saveInfo.playerData.swordHealth;
+    BUTTON_ITEM_EQUIP(0, EQUIP_SLOT_B) = loadedData.save.saveInfo.equips.buttonItems[0][EQUIP_SLOT_B];
+    Interface_LoadItemIconImpl(gPlayState, EQUIP_SLOT_B);
 
     // // Restore bottle contents (unless it's ruto's letter)
     // for (int i = 0; i < 4; i++) {
@@ -717,12 +716,19 @@ void Anchor_ParseSaveStateFromRemote(nlohmann::json payload){
     //     }
     // }
 
+    //Set day/time
     gSaveContext.save.time = loadedData.save.time;
     gSaveContext.save.day = loadedData.save.day;
     gSaveContext.save.isNight = loadedData.save.isNight;
     gSaveContext.save.timeSpeedOffset = loadedData.save.timeSpeedOffset;
 
     gSaveContext.save.saveInfo.inventory = loadedData.save.saveInfo.inventory;
+
+    //TODO: Day on clock isn't updating (and probably other things)
+    // Maybe void out?
+    func_80169EFC(gGameState);
+    
+    gSaveContext.save.saveInfo.playerData.health = gSaveContext.save.saveInfo.playerData.healthCapacity;
     Anchor_DisplayMessage({ .message = "State loaded from remote!" });
 };
 
@@ -824,8 +830,9 @@ static uint32_t lastSceneNum = SCENE_MAX;
 void Anchor_RegisterHooks() {
     // TODO: Might need to change this hook to be after scene commands
     GameInteractor::Instance->RegisterGameHook<GameInteractor::OnSceneInit>([](s16 sceneId, s8 spawnNum) {
-        if (gPlayState == NULL || !GameInteractor::Instance->isRemoteInteractorConnected)
+        if (gPlayState == NULL || !GameInteractor::Instance->isRemoteInteractorConnected) {
             return;
+        }
 
         // Moved to a new scene
         if (lastSceneNum != gPlayState->sceneId) {
@@ -836,7 +843,8 @@ void Anchor_RegisterHooks() {
             // Player loaded into file
             if (lastSceneNum == SCENE_MAX) {
                 // TODO: I think this is firing an extra time?
-                Anchor_RequestSaveStateFromRemote();
+                // yeah, behaves more how I'd expect when commented out
+                // Anchor_RequestSaveStateFromRemote();
             }
 
             Anchor_RefreshClientActors();
