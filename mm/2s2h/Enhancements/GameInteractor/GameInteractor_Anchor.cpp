@@ -624,19 +624,20 @@ void Anchor_ParseSaveStateFromRemote(nlohmann::json payload){
     SaveContext loadedData = payload.get<SaveContext>();
 
     gSaveContext.save.saveInfo.playerData.healthCapacity = loadedData.save.saveInfo.playerData.healthCapacity;
-    //TODO: Magic is messed up. Maybe check save editor to see what fields it touches
-    // gSaveContext.magicCapacity = gSaveContext.save.saveInfo.playerData.magic = loadedData.magicCapacity;
-    // gSaveContext.save.saveInfo.playerData.magicLevel = loadedData.save.saveInfo.playerData.magicLevel;
-    // gSaveContext.save.saveInfo.playerData.isMagicAcquired = loadedData.save.saveInfo.playerData.isMagicAcquired;
-    // gSaveContext.save.saveInfo.playerData.isDoubleMagicAcquired = loadedData.save.saveInfo.playerData.isDoubleMagicAcquired;
-    // If magic, maybe set BUTTON_ITEM_EQUIP(PLAYER_FORM_DEKU, EQUIP_SLOT_B) = ITEM_DEKU_NUT;
-    //BUTTON_ITEM_EQUIP(PLAYER_FORM_DEKU, EQUIP_SLOT_B) = ITEM_DEKU_NUT;
-
-    gSaveContext.magicCapacity = gSaveContext.save.saveInfo.playerData.magic = MAGIC_DOUBLE_METER;
-        gSaveContext.save.saveInfo.playerData.magicLevel = 2;
-        gSaveContext.save.saveInfo.playerData.isMagicAcquired = true;
-        gSaveContext.save.saveInfo.playerData.isDoubleMagicAcquired = true;
-        BUTTON_ITEM_EQUIP(PLAYER_FORM_DEKU, EQUIP_SLOT_B) = ITEM_DEKU_NUT;
+    //TODO: Clean this up. gsSaveContext.magicCapacity isn't included in BenJsonConversions. When added, game crashes on file select
+    if (loadedData.save.saveInfo.playerData.magicLevel == 2) {
+        gSaveContext.magicCapacity = gSaveContext.save.saveInfo.playerData.magic = MAGIC_DOUBLE_METER;
+        gSaveContext.save.saveInfo.playerData.magicLevel = loadedData.save.saveInfo.playerData.magicLevel;
+        gSaveContext.save.saveInfo.playerData.isMagicAcquired = loadedData.save.saveInfo.playerData.isMagicAcquired;
+        gSaveContext.save.saveInfo.playerData.isDoubleMagicAcquired = loadedData.save.saveInfo.playerData.isDoubleMagicAcquired;
+    } else if (loadedData.save.saveInfo.playerData.magicLevel == 1) {
+        gSaveContext.magicCapacity = gSaveContext.save.saveInfo.playerData.magic = MAGIC_NORMAL_METER;
+        gSaveContext.save.saveInfo.playerData.magicLevel = loadedData.save.saveInfo.playerData.magicLevel;
+        gSaveContext.save.saveInfo.playerData.isMagicAcquired = loadedData.save.saveInfo.playerData.isMagicAcquired;
+        gSaveContext.save.saveInfo.playerData.isDoubleMagicAcquired = loadedData.save.saveInfo.playerData.isDoubleMagicAcquired;
+    }
+    
+    BUTTON_ITEM_EQUIP(PLAYER_FORM_DEKU, EQUIP_SLOT_B) = loadedData.save.saveInfo.equips.buttonItems[PLAYER_FORM_DEKU][EQUIP_SLOT_B];
 
     gSaveContext.save.saveInfo.playerData.doubleDefense = loadedData.save.saveInfo.playerData.doubleDefense;
     // gSaveContext.bgsFlag = loadedData.bgsFlag;
@@ -657,13 +658,18 @@ void Anchor_ParseSaveStateFromRemote(nlohmann::json payload){
             gPlayState->actorCtx.sceneFlags.switches[1] = gSaveContext.cycleSceneFlags[i].switch1;
             gPlayState->actorCtx.sceneFlags.clearedRoom = gSaveContext.cycleSceneFlags[i].clearedRoom;
             //I'm not sure how to translate the u32 colllectible in saveContext to the u32[4] in actorCtx
+            // z_play.c line:1995 matches actorCtx..collectible[0] to cycleScene.collectible
             gPlayState->actorCtx.sceneFlags.collectible[0] = gSaveContext.cycleSceneFlags[i].collectible;
         }
     }
 
-    // for (int i = 0; i < 14; i++) {
-    //     gSaveContext.eventChkInf[i] = loadedData.eventChkInf[i];
-    // }
+    for (int i = 0; i < 100; i++) {
+        gSaveContext.save.saveInfo.weekEventReg[i] = loadedData.save.saveInfo.weekEventReg[i];
+    }
+
+    for (int i = 0; i < 8; i++) {
+        gSaveContext.eventInf[i] = loadedData.eventInf[i];
+    }
 
     // for (int i = 0; i < 4; i++) {
     //     gSaveContext.itemGetInf[i] = loadedData.itemGetInf[i];
@@ -710,6 +716,11 @@ void Anchor_ParseSaveStateFromRemote(nlohmann::json payload){
     //         loadedData.inventory.ammo[i] = gSaveContext.inventory.ammo[i];
     //     }
     // }
+
+    gSaveContext.save.time = loadedData.save.time;
+    gSaveContext.save.day = loadedData.save.day;
+    gSaveContext.save.isNight = loadedData.save.isNight;
+    gSaveContext.save.timeSpeedOffset = loadedData.save.timeSpeedOffset;
 
     gSaveContext.save.saveInfo.inventory = loadedData.save.saveInfo.inventory;
     Anchor_DisplayMessage({ .message = "State loaded from remote!" });
