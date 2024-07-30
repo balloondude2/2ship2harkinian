@@ -625,11 +625,19 @@ void Anchor_ParseSaveStateFromRemote(nlohmann::json payload){
 
     gSaveContext.save.saveInfo.playerData.healthCapacity = loadedData.save.saveInfo.playerData.healthCapacity;
     //TODO: Magic is messed up. Maybe check save editor to see what fields it touches
-    gSaveContext.save.saveInfo.playerData.magicLevel = loadedData.save.saveInfo.playerData.magicLevel;
-    gSaveContext.magicCapacity = loadedData.magicCapacity;
-    gSaveContext.save.saveInfo.playerData.magic  = loadedData.save.saveInfo.playerData.magic;
-    gSaveContext.save.saveInfo.playerData.isMagicAcquired = loadedData.save.saveInfo.playerData.isMagicAcquired;
-    gSaveContext.save.saveInfo.playerData.isDoubleMagicAcquired = loadedData.save.saveInfo.playerData.isDoubleMagicAcquired;
+    // gSaveContext.magicCapacity = gSaveContext.save.saveInfo.playerData.magic = loadedData.magicCapacity;
+    // gSaveContext.save.saveInfo.playerData.magicLevel = loadedData.save.saveInfo.playerData.magicLevel;
+    // gSaveContext.save.saveInfo.playerData.isMagicAcquired = loadedData.save.saveInfo.playerData.isMagicAcquired;
+    // gSaveContext.save.saveInfo.playerData.isDoubleMagicAcquired = loadedData.save.saveInfo.playerData.isDoubleMagicAcquired;
+    // If magic, maybe set BUTTON_ITEM_EQUIP(PLAYER_FORM_DEKU, EQUIP_SLOT_B) = ITEM_DEKU_NUT;
+    //BUTTON_ITEM_EQUIP(PLAYER_FORM_DEKU, EQUIP_SLOT_B) = ITEM_DEKU_NUT;
+
+    gSaveContext.magicCapacity = gSaveContext.save.saveInfo.playerData.magic = MAGIC_DOUBLE_METER;
+        gSaveContext.save.saveInfo.playerData.magicLevel = 2;
+        gSaveContext.save.saveInfo.playerData.isMagicAcquired = true;
+        gSaveContext.save.saveInfo.playerData.isDoubleMagicAcquired = true;
+        BUTTON_ITEM_EQUIP(PLAYER_FORM_DEKU, EQUIP_SLOT_B) = ITEM_DEKU_NUT;
+
     gSaveContext.save.saveInfo.playerData.doubleDefense = loadedData.save.saveInfo.playerData.doubleDefense;
     // gSaveContext.bgsFlag = loadedData.bgsFlag;
     gSaveContext.save.saveInfo.playerData.swordHealth = loadedData.save.saveInfo.playerData.swordHealth;
@@ -638,14 +646,18 @@ void Anchor_ParseSaveStateFromRemote(nlohmann::json payload){
 
     //TODO: I doubt this is right
     for (int i = 0; i < SCENE_MAX; i++) {
-        gSaveContext.save.saveInfo.permanentSceneFlags[i] = loadedData.save.saveInfo.permanentSceneFlags[i];
+        gSaveContext.cycleSceneFlags[i].chest = loadedData.save.saveInfo.permanentSceneFlags[i].chest;
+        gSaveContext.cycleSceneFlags[i].switch0 = loadedData.save.saveInfo.permanentSceneFlags[i].switch0;
+        gSaveContext.cycleSceneFlags[i].switch1 = loadedData.save.saveInfo.permanentSceneFlags[i].switch1;
+        gSaveContext.cycleSceneFlags[i].clearedRoom = loadedData.save.saveInfo.permanentSceneFlags[i].clearedRoom;
+        gSaveContext.cycleSceneFlags[i].collectible = loadedData.save.saveInfo.permanentSceneFlags[i].collectible;
         if (gPlayState->sceneId == i) {
-            gPlayState->actorCtx.sceneFlags.chest = loadedData.save.saveInfo.permanentSceneFlags[i].chest;
-            gPlayState->actorCtx.sceneFlags.switches[0] = loadedData.save.saveInfo.permanentSceneFlags[i].switch0;
-            gPlayState->actorCtx.sceneFlags.switches[1] = loadedData.save.saveInfo.permanentSceneFlags[i].switch1;
-            gPlayState->actorCtx.sceneFlags.clearedRoom = loadedData.save.saveInfo.permanentSceneFlags[i].clearedRoom;
-            //I'm not sure how to translate the u32 colllectible in saveInfo to the u32[4] in actorCtx
-            gPlayState->actorCtx.sceneFlags.collectible[0] = loadedData.save.saveInfo.permanentSceneFlags[i].collectible;
+            gPlayState->actorCtx.sceneFlags.chest = gSaveContext.cycleSceneFlags[i].chest;
+            gPlayState->actorCtx.sceneFlags.switches[0] = gSaveContext.cycleSceneFlags[i].switch0;
+            gPlayState->actorCtx.sceneFlags.switches[1] = gSaveContext.cycleSceneFlags[i].switch1;
+            gPlayState->actorCtx.sceneFlags.clearedRoom = gSaveContext.cycleSceneFlags[i].clearedRoom;
+            //I'm not sure how to translate the u32 colllectible in saveContext to the u32[4] in actorCtx
+            gPlayState->actorCtx.sceneFlags.collectible[0] = gSaveContext.cycleSceneFlags[i].collectible;
         }
     }
 
