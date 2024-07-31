@@ -82,9 +82,9 @@ void Ben_Destroy(Actor* thisx, PlayState* play) {
     Ben* this = THIS;
 
     Collider_DestroyCylinder(play, &this->collider);
-    Play_SetRespawnData(&play->state, this->actor.params + RESPAWN_MODE_GORON - 1, 0xFF, 0,
-                        PLAYER_PARAMS(0xFF, PLAYER_INITMODE_B), &this->actor.world.pos, this->actor.shape.rot.y);
-    play->actorCtx.elegyShells[this->actor.params] = NULL;
+    // Play_SetRespawnData(&play->state, this->actor.params + RESPAWN_MODE_GORON - 1, 0xFF, 0,
+    //                     PLAYER_PARAMS(0xFF, PLAYER_INITMODE_B), &this->actor.world.pos, this->actor.shape.rot.y);
+    // play->actorCtx.elegyShells[this->actor.params] = NULL;
 }
 
 void Ben_Update(Actor* thisx, PlayState* play) {
