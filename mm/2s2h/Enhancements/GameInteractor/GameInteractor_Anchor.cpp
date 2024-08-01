@@ -611,6 +611,11 @@ void Anchor_PushSaveStateToRemote() {
     // payload["sceneFlags"][gPlayState->sceneNum]["clear"] = gPlayState->actorCtx.flags.clear;
     // payload["sceneFlags"][gPlayState->sceneNum]["collect"] = gPlayState->actorCtx.flags.collect;
 
+
+    
+    payload["cycleSceneFlags"] = gSaveContext.cycleSceneFlags;
+    
+
     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
 }
 
@@ -645,13 +650,13 @@ void Anchor_ParseSaveStateFromRemote(nlohmann::json payload){
     // // TODO: Packet to live update this
     // gSaveContext.adultTradeItems = loadedData.adultTradeItems;
 
-    //TODO: I doubt this is right
+    //TODO: I doubt this is right; I think this is better now, but could still use work probs
     for (int i = 0; i < SCENE_MAX; i++) {
-        gSaveContext.cycleSceneFlags[i].chest = loadedData.save.saveInfo.permanentSceneFlags[i].chest;
-        gSaveContext.cycleSceneFlags[i].switch0 = loadedData.save.saveInfo.permanentSceneFlags[i].switch0;
-        gSaveContext.cycleSceneFlags[i].switch1 = loadedData.save.saveInfo.permanentSceneFlags[i].switch1;
-        gSaveContext.cycleSceneFlags[i].clearedRoom = loadedData.save.saveInfo.permanentSceneFlags[i].clearedRoom;
-        gSaveContext.cycleSceneFlags[i].collectible = loadedData.save.saveInfo.permanentSceneFlags[i].collectible;
+        gSaveContext.cycleSceneFlags[i].chest = loadedData.cycleSceneFlags[i].chest;
+        gSaveContext.cycleSceneFlags[i].switch0 = loadedData.cycleSceneFlags[i].switch0;
+        gSaveContext.cycleSceneFlags[i].switch1 = loadedData.cycleSceneFlags[i].switch1;
+        gSaveContext.cycleSceneFlags[i].clearedRoom = loadedData.cycleSceneFlags[i].clearedRoom;
+        gSaveContext.cycleSceneFlags[i].collectible = loadedData.cycleSceneFlags[i].collectible;
         if (gPlayState->sceneId == i) {
             gPlayState->actorCtx.sceneFlags.chest = gSaveContext.cycleSceneFlags[i].chest;
             gPlayState->actorCtx.sceneFlags.switches[0] = gSaveContext.cycleSceneFlags[i].switch0;
@@ -727,7 +732,7 @@ void Anchor_ParseSaveStateFromRemote(nlohmann::json payload){
     //TODO: Day on clock isn't updating (and probably other things)
     // Maybe void out?
     func_80169EFC(gGameState);
-    
+
     gSaveContext.save.saveInfo.playerData.health = gSaveContext.save.saveInfo.playerData.healthCapacity;
     Anchor_DisplayMessage({ .message = "State loaded from remote!" });
 };
