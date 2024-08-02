@@ -11,7 +11,6 @@
 //#include <soh/util.h>
 #include <nlohmann/json.hpp>
 #include "2s2h/BenJsonConversions.hpp"
-// mm\2s2h\BenJsonConversions.hpp
 
 // copied from z_sram_nes. Can probably just use the struct there, but I was getting linker errors
 typedef struct PersistentCycleSceneFlags {
@@ -40,7 +39,6 @@ s16 gEnLinkPuppetId = 0x2B2;
 
 using json = nlohmann::json;
 
-
 void from_json(const json& j, AnchorClient& client) {
     j.contains("clientId") ? j.at("clientId").get_to(client.clientId) : client.clientId = 0;
     j.contains("clientVersion") ? j.at("clientVersion").get_to(client.clientVersion) : client.clientVersion = "???";
@@ -58,11 +56,11 @@ void from_json(const json& j, AnchorClient& client) {
 
 void to_json(json& j, const CycleSceneFlags& flags) {
     j = json{
-        {"chest", flags.chest},
-        {"switch0", flags.switch0},
-        {"switch1", flags.switch1},
-        {"clearedRoom", flags.clearedRoom},
-        {"collectible", flags.collectible},
+        { "chest", flags.chest },
+        { "switch0", flags.switch0 },
+        { "switch1", flags.switch1 },
+        { "clearedRoom", flags.clearedRoom },
+        { "collectible", flags.collectible },
     };
 }
 
@@ -73,7 +71,6 @@ void from_json(const json& j, CycleSceneFlags& flags) {
     j.at("clearedRoom").get_to(flags.clearedRoom);
     j.at("collectible").get_to(flags.collectible);
 }
-
 
 std::vector<std::string> sceneNames = {
     /* 0x00 */ "Southern Swamp (Clear)",
@@ -215,8 +212,8 @@ void Anchor_SendClientData() {
     payload["data"]["clientVersion"] = GameInteractorAnchor::clientVersion;
     payload["type"] = "UPDATE_CLIENT_DATA";
 
-    // TODO: Doesn't crash when Anchor is enabled at start, but needs reconnect to work. Maybe call this function again on
-    // game load
+    // TODO: Doesn't crash when Anchor is enabled at start, but needs reconnect to work. Maybe call this function again
+    // on game load
     if (GameInteractor::IsSaveLoaded()) {
         payload["data"]["fileNum"] = gSaveContext.fileNum;
         payload["data"]["sceneNum"] = gPlayState->sceneId;
@@ -277,32 +274,31 @@ void Anchor_ParseSaveStateFromRemote(nlohmann::json payload);
 void Anchor_PushSaveStateToRemote();
 
 bool WeekEventReg_Persistance(u32 flag) {
-    u16 persistBits = sPersistentCycleWeekEventRegs[flag >> 8]; 
-    u16 shifted_flag_bits = 3 << (2 * BIT_FLAG_TO_SHIFT(flag & 0xFF)); 
-    return persistBits & shifted_flag_bits; 
+    u16 persistBits = sPersistentCycleWeekEventRegs[flag >> 8];
+    u16 shifted_flag_bits = 3 << (2 * BIT_FLAG_TO_SHIFT(flag & 0xFF));
+    return persistBits & shifted_flag_bits;
 }
 
-bool SceneFlag_Persistance(int16_t sceneNum, FlagType
-    flagType, uint32_t flag) {
+bool SceneFlag_Persistance(int16_t sceneNum, FlagType flagType, uint32_t flag) {
     // TODO: What flags do we send?
-        switch (flagType) {
-            case FLAG_CYCL_SCENE_CHEST:
-                return (Flags_GetTreasure(gPlayState, flag) & sPersistentCycleSceneFlags[sceneNum].chest);
-            case FLAG_CYCL_SCENE_SWITCH:
-                if ((flag & ~0x1F) >> 5 == 0) {
-                    return (Flags_GetSwitch(gPlayState, flag) & sPersistentCycleSceneFlags[sceneNum].switch0);
-                } else if ((flag & ~0x1F) >> 5 == 1) {
-                    return (Flags_GetSwitch(gPlayState, flag) & sPersistentCycleSceneFlags[sceneNum].switch1);
-                } 
-                break;
-            case FLAG_CYCL_SCENE_CLEARED_ROOM:
-                break;
-            case FLAG_CYCL_SCENE_COLLECTIBLE:
-                return (Flags_GetCollectible(gPlayState, flag) & sPersistentCycleSceneFlags[sceneNum].collectible);
-            default:
-                break;
-        }
-        return false;
+    switch (flagType) {
+        case FLAG_CYCL_SCENE_CHEST:
+            return (Flags_GetTreasure(gPlayState, flag) & sPersistentCycleSceneFlags[sceneNum].chest);
+        case FLAG_CYCL_SCENE_SWITCH:
+            if ((flag & ~0x1F) >> 5 == 0) {
+                return (Flags_GetSwitch(gPlayState, flag) & sPersistentCycleSceneFlags[sceneNum].switch0);
+            } else if ((flag & ~0x1F) >> 5 == 1) {
+                return (Flags_GetSwitch(gPlayState, flag) & sPersistentCycleSceneFlags[sceneNum].switch1);
+            }
+            break;
+        case FLAG_CYCL_SCENE_CLEARED_ROOM:
+            break;
+        case FLAG_CYCL_SCENE_COLLECTIBLE:
+            return (Flags_GetCollectible(gPlayState, flag) & sPersistentCycleSceneFlags[sceneNum].collectible);
+        default:
+            break;
+    }
+    return false;
 }
 
 void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
@@ -325,25 +321,23 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
     }
 
     if (payload["type"] == "GIVE_ITEM") {
-        //add item to inventory
-        //use proxysaw's demo a few weeks ago
+        // add item to inventory
+        // use proxysaw's demo a few weeks ago
+
+        // TODO: Look into quest items and dungeon items (songs and small keys)
 
         AnchorClient anchorClient = GameInteractorAnchor::AnchorClients[payload["clientId"].get<uint32_t>()];
         int16_t item = payload["getItemId"].get<int16_t>();
-        std::string itemString = std::to_string(item); 
-            
-                    Anchor_DisplayMessage({
-                        //.prefix = payload["getItemId"].get<int16_t>(),
-                        .prefix = itemString,
-                        .message = "from",
-                        .suffix = anchorClient.name
-                    });
-                
-            
+        std::string itemString = std::to_string(item);
+
+        Anchor_DisplayMessage({ //.prefix = payload["getItemId"].get<int16_t>(),
+                                .prefix = itemString,
+                                .message = "from",
+                                .suffix = anchorClient.name });
     }
 
     if (payload["type"] == "SET_SCENE_FLAG") {
-        
+
         s16 sceneId = payload["sceneNum"].get<int16_t>();
         u32 flagType = payload["flagType"].get<uint32_t>();
         u32 flag = payload["flag"].get<uint32_t>();
@@ -405,11 +399,11 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
                         gPlayState->actorCtx.sceneFlags.collectible[(flag & ~0x1F) >> 5] |= 1 << (flag & 0x1F);
                     }
 
-
-                    //TODO: Are there any other actor categories to check and kill?
+                    // TODO: Are there any other actor categories to check and kill?
+                    //  Check Boss remains, are there freestanding keys?
                     Actor* actor = gPlayState->actorCtx.actorLists[ACTORCAT_MISC].first;
                     while (actor != NULL) {
-                        //Do we want to check that actorId = 0x0E before casting to EnItem00?
+                        // Probably should check that actorId = 0x0E before casting to EnItem00
                         EnItem00* item = ((EnItem00*)actor);
                         if (item->collectibleFlag == flag) {
                             Actor_Kill(actor);
@@ -424,20 +418,18 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
                 break;
         }
 
-        //AnchorClient anchorClient = GameInteractorAnchor::AnchorClients[payload["clientId"].get<uint32_t>()];
-        std::string s1 = std::to_string(sceneId); 
-        std::string s2 = std::to_string(flagType); 
-        std::string s3 = std::to_string(flag); 
-            
-                    Anchor_DisplayMessage({
-                        //.prefix = payload["getItemId"].get<int16_t>(),
-                        .prefix = "set scene flag", //108
-                        .message = s2, //11
-                        .suffix = s3 //10
-                    });
+        // AnchorClient anchorClient = GameInteractorAnchor::AnchorClients[payload["clientId"].get<uint32_t>()];
+        std::string s1 = std::to_string(sceneId);
+        std::string s2 = std::to_string(flagType);
+        std::string s3 = std::to_string(flag);
+
+        Anchor_DisplayMessage({ //.prefix = payload["getItemId"].get<int16_t>(),
+                                .prefix = "set scene flag",
+                                .message = s2,
+                                .suffix = s3 });
     }
     if (payload["type"] == "SET_FLAG") {
-        //s16 sceneId = payload["sceneNum"].get<int16_t>();
+        // s16 sceneId = payload["sceneNum"].get<int16_t>();
         u32 flagType = payload["flagType"].get<uint32_t>();
         u32 flag = payload["flag"].get<uint32_t>();
         switch (flagType) {
@@ -465,25 +457,19 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
                 break;
         }
 
-        //AnchorClient anchorClient = GameInteractorAnchor::AnchorClients[payload["clientId"].get<uint32_t>()];
-        //std::string s1 = std::to_string(sceneId); 
-        std::string s2 = std::to_string(flagType); 
-        std::string s3 = std::to_string(flag); 
-            
-                    Anchor_DisplayMessage({
-                        //.prefix = payload["getItemId"].get<int16_t>(),
-                        .prefix = "set flag", //108
-                        .message = s2, //11
-                        .suffix = s3 //10
-                    });
+        // AnchorClient anchorClient = GameInteractorAnchor::AnchorClients[payload["clientId"].get<uint32_t>()];
+        // std::string s1 = std::to_string(sceneId);
+        std::string s2 = std::to_string(flagType);
+        std::string s3 = std::to_string(flag);
+
+        Anchor_DisplayMessage({ //.prefix = payload["getItemId"].get<int16_t>(),
+                                .prefix = "set flag",
+                                .message = s2,
+                                .suffix = s3 });
     }
-    if (payload["type"] == "UNSET_SCENE_FLAG") {
-        
-    }
-    if (payload["type"] == "UNSET_FLAG") {
-        
-    }
-    
+    if (payload["type"] == "UNSET_SCENE_FLAG") {}
+    if (payload["type"] == "UNSET_FLAG") {}
+
     if (payload["type"] == "CLIENT_UPDATE") {
         uint32_t clientId = payload["clientId"].get<uint32_t>();
 
@@ -569,7 +555,7 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
             GameInteractorAnchor::AnchorClients[clientId].entranceIndex = client.entranceIndex;
         }
     }
-    
+
     if (payload["type"] == "REQUEST_TELEPORT") {
         Anchor_TeleportToPlayer(payload["clientId"].get<uint32_t>());
     }
@@ -578,10 +564,9 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
         uint32_t roomIndex = payload["roomIndex"].get<uint32_t>();
         PosRot posRot = payload["posRot"].get<PosRot>();
 
-        //TODO: Check these parameters
-        Play_SetRespawnData(gGameState, RESPAWN_MODE_DOWN, entranceIndex, roomIndex, 0xDFF, &posRot.pos,
-        posRot.rot.y); 
-        //Play_TriggerVoidOut(gPlayState);
+        // TODO: Check these parameters
+        Play_SetRespawnData(gGameState, RESPAWN_MODE_DOWN, entranceIndex, roomIndex, 0xDFF, &posRot.pos, posRot.rot.y);
+        // Play_TriggerVoidOut(gPlayState);
         func_80169EFC(gGameState);
     }
     if (payload["type"] == "SERVER_MESSAGE") {
@@ -601,13 +586,14 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
 }
 
 void Anchor_PushSaveStateToRemote() {
-    //TODO: This sends way more data than needed. Particularly pictoPhoto
+    // TODO: This sends way more data than needed. Particularly pictoPhoto
     nlohmann::json payload = gSaveContext;
     payload["type"] = "PUSH_SAVE_STATE";
+
     payload["cycleSceneFlags"] = gSaveContext.cycleSceneFlags;
-    
-    // TODO: Probably need to account for inverted stone tower. See Play_SaveCycleSceneFlags() in z_play.c. Here and other places
-    // manually update current scene flags
+
+    // TODO: Probably need to account for inverted stone tower. See Play_SaveCycleSceneFlags() in z_play.c. Here and
+    // other places manually update current scene flags
     payload["cycleSceneFlags"][gPlayState->sceneId]["chest"] = gPlayState->actorCtx.sceneFlags.chest;
     payload["cycleSceneFlags"][gPlayState->sceneId]["switch0"] = gPlayState->actorCtx.sceneFlags.switches[0];
     payload["cycleSceneFlags"][gPlayState->sceneId]["switch1"] = gPlayState->actorCtx.sceneFlags.switches[1];
@@ -624,44 +610,54 @@ void Anchor_RequestSaveStateFromRemote() {
     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
 }
 
-void Anchor_ParseSaveStateFromRemote(nlohmann::json payload){
+void Anchor_ParseSaveStateFromRemote(nlohmann::json payload) {
     SaveContext loadedData = payload.get<SaveContext>();
 
+    // from_json for SaveContext doesn't have CycleSceneFlags, so manually parse them
+    CycleSceneFlags sceneFlags[120];
+    for (int i = 0; i < SCENE_MAX; i++) {
+        sceneFlags[i] = payload["cycleSceneFlags"][i].get<CycleSceneFlags>();
+    }
+
     gSaveContext.save.saveInfo.playerData.healthCapacity = loadedData.save.saveInfo.playerData.healthCapacity;
-    //TODO: Clean this up. gsSaveContext.magicCapacity isn't included in BenJsonConversions. When added, game crashes on file select
+    // TODO: Clean this up. gsSaveContext.magicCapacity isn't included in BenJsonConversions. When added, game crashes
+    // on file select
     if (loadedData.save.saveInfo.playerData.magicLevel == 2) {
         gSaveContext.magicCapacity = gSaveContext.save.saveInfo.playerData.magic = MAGIC_DOUBLE_METER;
         gSaveContext.save.saveInfo.playerData.magicLevel = loadedData.save.saveInfo.playerData.magicLevel;
         gSaveContext.save.saveInfo.playerData.isMagicAcquired = loadedData.save.saveInfo.playerData.isMagicAcquired;
-        gSaveContext.save.saveInfo.playerData.isDoubleMagicAcquired = loadedData.save.saveInfo.playerData.isDoubleMagicAcquired;
+        gSaveContext.save.saveInfo.playerData.isDoubleMagicAcquired =
+            loadedData.save.saveInfo.playerData.isDoubleMagicAcquired;
     } else if (loadedData.save.saveInfo.playerData.magicLevel == 1) {
         gSaveContext.magicCapacity = gSaveContext.save.saveInfo.playerData.magic = MAGIC_NORMAL_METER;
         gSaveContext.save.saveInfo.playerData.magicLevel = loadedData.save.saveInfo.playerData.magicLevel;
         gSaveContext.save.saveInfo.playerData.isMagicAcquired = loadedData.save.saveInfo.playerData.isMagicAcquired;
-        gSaveContext.save.saveInfo.playerData.isDoubleMagicAcquired = loadedData.save.saveInfo.playerData.isDoubleMagicAcquired;
+        gSaveContext.save.saveInfo.playerData.isDoubleMagicAcquired =
+            loadedData.save.saveInfo.playerData.isDoubleMagicAcquired;
     }
-    
-    BUTTON_ITEM_EQUIP(PLAYER_FORM_DEKU, EQUIP_SLOT_B) = loadedData.save.saveInfo.equips.buttonItems[PLAYER_FORM_DEKU][EQUIP_SLOT_B];
+
+    BUTTON_ITEM_EQUIP(PLAYER_FORM_DEKU, EQUIP_SLOT_B) =
+        loadedData.save.saveInfo.equips.buttonItems[PLAYER_FORM_DEKU][EQUIP_SLOT_B];
 
     gSaveContext.save.saveInfo.playerData.doubleDefense = loadedData.save.saveInfo.playerData.doubleDefense;
     // gSaveContext.bgsFlag = loadedData.bgsFlag;
     // // TODO: Packet to live update this
     // gSaveContext.adultTradeItems = loadedData.adultTradeItems;
 
-    //TODO: I doubt this is right; I think this is better now, but could still use work probs
+    // TODO: I doubt this is right; I think this is better now, but could still use work probs. now on v3
     for (int i = 0; i < SCENE_MAX; i++) {
-        gSaveContext.cycleSceneFlags[i].chest = loadedData.cycleSceneFlags[i].chest;
-        gSaveContext.cycleSceneFlags[i].switch0 = loadedData.cycleSceneFlags[i].switch0;
-        gSaveContext.cycleSceneFlags[i].switch1 = loadedData.cycleSceneFlags[i].switch1;
-        gSaveContext.cycleSceneFlags[i].clearedRoom = loadedData.cycleSceneFlags[i].clearedRoom;
-        gSaveContext.cycleSceneFlags[i].collectible = loadedData.cycleSceneFlags[i].collectible;
+        gSaveContext.cycleSceneFlags[i].chest = sceneFlags[i].chest;
+        gSaveContext.cycleSceneFlags[i].switch0 = sceneFlags[i].switch0;
+        gSaveContext.cycleSceneFlags[i].switch1 = sceneFlags[i].switch1;
+        gSaveContext.cycleSceneFlags[i].clearedRoom = sceneFlags[i].clearedRoom;
+        gSaveContext.cycleSceneFlags[i].collectible = sceneFlags[i].collectible;
         if (gPlayState->sceneId == i) {
             gPlayState->actorCtx.sceneFlags.chest = gSaveContext.cycleSceneFlags[i].chest;
             gPlayState->actorCtx.sceneFlags.switches[0] = gSaveContext.cycleSceneFlags[i].switch0;
             gPlayState->actorCtx.sceneFlags.switches[1] = gSaveContext.cycleSceneFlags[i].switch1;
             gPlayState->actorCtx.sceneFlags.clearedRoom = gSaveContext.cycleSceneFlags[i].clearedRoom;
-            //I'm not sure how to translate the u32 colllectible in saveContext to the u32[4] in actorCtx
-            // z_play.c line:1995 matches actorCtx..collectible[0] to cycleScene.collectible
+            // I'm not sure how to translate the u32 colllectible in saveContext to the u32[4] in actorCtx
+            //  z_play.c line:1995 matches actorCtx..collectible[0] to cycleScene.collectible
             gPlayState->actorCtx.sceneFlags.collectible[0] = gSaveContext.cycleSceneFlags[i].collectible;
         }
     }
@@ -697,7 +693,6 @@ void Anchor_ParseSaveStateFromRemote(nlohmann::json payload){
     //     }
     // }
 
-    
     // Set Sword and Sheild
     gSaveContext.save.saveInfo.equips.equipment = loadedData.save.saveInfo.equips.equipment;
     gSaveContext.save.saveInfo.playerData.swordHealth = loadedData.save.saveInfo.playerData.swordHealth;
@@ -714,12 +709,12 @@ void Anchor_ParseSaveStateFromRemote(nlohmann::json payload){
 
     // Restore ammo if it's non-zero,
     for (int i = 0; i < ARRAY_COUNT(gSaveContext.save.saveInfo.inventory.ammo); i++) {
-        if (gSaveContext.save.saveInfo.inventory.ammo[i] != 0 ) {
+        if (gSaveContext.save.saveInfo.inventory.ammo[i] != 0) {
             loadedData.save.saveInfo.inventory.ammo[i] = gSaveContext.save.saveInfo.inventory.ammo[i];
         }
     }
 
-    //Set day/time
+    // Set day/time
     gSaveContext.save.time = loadedData.save.time;
     gSaveContext.save.day = loadedData.save.day;
     gSaveContext.save.isNight = loadedData.save.isNight;
@@ -727,8 +722,8 @@ void Anchor_ParseSaveStateFromRemote(nlohmann::json payload){
 
     gSaveContext.save.saveInfo.inventory = loadedData.save.saveInfo.inventory;
 
-    //TODO: Day on clock isn't updating (and probably other things)
-    // Maybe void out?
+    // TODO: Day on clock isn't updating (and probably other things)
+    //  Maybe void out?
     func_80169EFC(gGameState);
 
     gSaveContext.save.saveInfo.playerData.health = gSaveContext.save.saveInfo.playerData.healthCapacity;
@@ -818,9 +813,9 @@ void Anchor_RefreshClientActors() {
     uint32_t i = 0;
     for (auto [clientId, client] : GameInteractorAnchor::AnchorClients) {
         GameInteractorAnchor::ActorIndexToClientId.push_back(clientId);
-        auto fairy = Actor_Spawn(&gPlayState->actorCtx, gPlayState, gEnLinkPuppetId, client.posRot.pos.x, client.posRot.pos.y,
-                        client.posRot.pos.z, client.posRot.rot.x, client.posRot.rot.y, client.posRot.rot.z,
-                        3 + i);
+        auto fairy =
+            Actor_Spawn(&gPlayState->actorCtx, gPlayState, gEnLinkPuppetId, client.posRot.pos.x, client.posRot.pos.y,
+                        client.posRot.pos.z, client.posRot.rot.x, client.posRot.rot.y, client.posRot.rot.z, 3 + i);
         // Todo: This was removed in player models branch
         // TODO: Add nametag stuff
         // NameTag_RegisterForActor(fairy, client.name.c_str());
@@ -869,37 +864,36 @@ void Anchor_RegisterHooks() {
     // });
 
     GameInteractor::Instance->RegisterGameHook<GameInteractor::OnItemGive>([](u8 item) {
-
-
         nlohmann::json payload;
 
         payload["type"] = "GIVE_ITEM";
         payload["getItemId"] = item;
 
         GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
-    }); 
-
-    GameInteractor::Instance->RegisterGameHook<GameInteractor::OnSceneFlagSet>([](int16_t sceneNum, FlagType
-    flagType, uint32_t flag) {
-        if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) {
-            return; 
-        }
-
-        // TODO: What flags do we send?
-        if (!SceneFlag_Persistance(sceneNum, flagType, flag)) {
-            return;
-        }
-
-        nlohmann::json payload;
-
-        payload["type"] = "SET_SCENE_FLAG";
-        payload["sceneNum"] = sceneNum;
-        payload["flagType"] = flagType;
-        payload["flag"] = flag;
-        payload["quiet"] = true;
-
-        GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
     });
+
+    GameInteractor::Instance->RegisterGameHook<GameInteractor::OnSceneFlagSet>(
+        [](int16_t sceneNum, FlagType flagType, uint32_t flag) {
+            if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) {
+                return;
+            }
+
+            // TODO: What flags do we send?
+            // Currently only sending permanent flags
+            if (!SceneFlag_Persistance(sceneNum, flagType, flag)) {
+                return;
+            }
+
+            nlohmann::json payload;
+
+            payload["type"] = "SET_SCENE_FLAG";
+            payload["sceneNum"] = sceneNum;
+            payload["flagType"] = flagType;
+            payload["flag"] = flag;
+            payload["quiet"] = true;
+
+            GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
+        });
     GameInteractor::Instance->RegisterGameHook<GameInteractor::OnFlagSet>([](FlagType flagType, uint32_t flag) {
         if (flagType == FLAG_WEEK_EVENT_REG && flag == WEEKEVENTREG_92_80) {
             return;
@@ -922,25 +916,25 @@ void Anchor_RegisterHooks() {
 
         GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
     });
-    GameInteractor::Instance->RegisterGameHook<GameInteractor::OnSceneFlagUnset>([](int16_t sceneNum, FlagType
-    flagType, uint32_t flag) {
-        if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) {
-            return; 
-        }
+    GameInteractor::Instance->RegisterGameHook<GameInteractor::OnSceneFlagUnset>(
+        [](int16_t sceneNum, FlagType flagType, uint32_t flag) {
+            if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) {
+                return;
+            }
 
-        if (!SceneFlag_Persistance(sceneNum, flagType, flag)) {
-            return;
-        }
-        nlohmann::json payload;
+            if (!SceneFlag_Persistance(sceneNum, flagType, flag)) {
+                return;
+            }
+            nlohmann::json payload;
 
-        payload["type"] = "UNSET_SCENE_FLAG";
-        payload["sceneNum"] = sceneNum;
-        payload["flagType"] = flagType;
-        payload["flag"] = flag;
-        payload["quiet"] = true;
+            payload["type"] = "UNSET_SCENE_FLAG";
+            payload["sceneNum"] = sceneNum;
+            payload["flagType"] = flagType;
+            payload["flag"] = flag;
+            payload["quiet"] = true;
 
-        GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
-    });
+            GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
+        });
     GameInteractor::Instance->RegisterGameHook<GameInteractor::OnFlagUnset>([](FlagType flagType, uint32_t flag) {
         if (flagType == FLAG_WEEK_EVENT_REG && flag == WEEKEVENTREG_92_80) {
             return;
@@ -951,7 +945,7 @@ void Anchor_RegisterHooks() {
         }
 
         if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) {
-            return; 
+            return;
         }
         nlohmann::json payload;
 
@@ -963,7 +957,7 @@ void Anchor_RegisterHooks() {
         GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
     });
 
-       GameInteractor::Instance->RegisterGameHookForID<GameInteractor::OnActorUpdate>(ACTOR_PLAYER, [](Actor* actor) {
+    GameInteractor::Instance->RegisterGameHookForID<GameInteractor::OnActorUpdate>(ACTOR_PLAYER, [](Actor* actor) {
         uint32_t currentPlayerCount = 0;
         for (auto& [clientId, client] : GameInteractorAnchor::AnchorClients) {
             if (client.sceneNum == gPlayState->sceneId) {
@@ -1006,7 +1000,8 @@ void Anchor_RegisterHooks() {
 }
 
 void Anchor_RequestTeleport(uint32_t clientId) {
-    if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) return;
+    if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded())
+        return;
 
     nlohmann::json payload;
 
@@ -1017,7 +1012,8 @@ void Anchor_RequestTeleport(uint32_t clientId) {
 }
 
 void Anchor_TeleportToPlayer(uint32_t clientId) {
-    if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) return;
+    if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded())
+        return;
     Player* player = GET_PLAYER(gPlayState);
 
     nlohmann::json payload;
@@ -1063,11 +1059,11 @@ void AnchorPlayerLocationWindow::DrawElement() {
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
                 if (ImGui::Button(ICON_FA_CHEVRON_RIGHT,
                                   ImVec2(ImGui::GetFontSize() * 1.0f, ImGui::GetFontSize() * 1.0f))) {
-                                    //TODO: Check these parameters. Some issues with teleporting
-                                    Play_SetRespawnData(gGameState, RESPAWN_MODE_DOWN, client.entranceIndex, client.roomIndex, 0xDFF, &client.posRot.pos,
-                                    client.posRot.rot.y); 
-                                    //Play_TriggerVoidOut(gPlayState);
-                                    func_80169EFC(gGameState);
+                    // TODO: Check these parameters. Some issues with teleporting
+                    Play_SetRespawnData(gGameState, RESPAWN_MODE_DOWN, client.entranceIndex, client.roomIndex, 0xDFF,
+                                        &client.posRot.pos, client.posRot.rot.y);
+                    // Play_TriggerVoidOut(gPlayState);
+                    func_80169EFC(gGameState);
                     // Play_SetRespawnData(gPlayState, RESPAWN_MODE_DOWN, client.entranceIndex, client.roomIndex, 0xDFF,
                     // &client.posRot.pos, client.posRot.rot.y); Play_TriggerVoidOut(gPlayState);
                 }
