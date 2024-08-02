@@ -604,17 +604,15 @@ void Anchor_PushSaveStateToRemote() {
     //TODO: This sends way more data than needed. Particularly pictoPhoto
     nlohmann::json payload = gSaveContext;
     payload["type"] = "PUSH_SAVE_STATE";
-    //TODO: update these for 2s2h
-    // manually update current scene flags
-    // payload["sceneFlags"][gPlayState->sceneNum]["chest"] = gPlayState->actorCtx.flags.chest;
-    // payload["sceneFlags"][gPlayState->sceneNum]["swch"] = gPlayState->actorCtx.flags.swch;
-    // payload["sceneFlags"][gPlayState->sceneNum]["clear"] = gPlayState->actorCtx.flags.clear;
-    // payload["sceneFlags"][gPlayState->sceneNum]["collect"] = gPlayState->actorCtx.flags.collect;
-
-
-    
     payload["cycleSceneFlags"] = gSaveContext.cycleSceneFlags;
     
+    // TODO: Probably need to account for inverted stone tower. See Play_SaveCycleSceneFlags() in z_play.c. Here and other places
+    // manually update current scene flags
+    payload["cycleSceneFlags"][gPlayState->sceneId]["chest"] = gPlayState->actorCtx.sceneFlags.chest;
+    payload["cycleSceneFlags"][gPlayState->sceneId]["switch0"] = gPlayState->actorCtx.sceneFlags.switches[0];
+    payload["cycleSceneFlags"][gPlayState->sceneId]["switch1"] = gPlayState->actorCtx.sceneFlags.switches[1];
+    payload["cycleSceneFlags"][gPlayState->sceneId]["clearedRoom"] = gPlayState->actorCtx.sceneFlags.clearedRoom;
+    payload["cycleSceneFlags"][gPlayState->sceneId]["collectible"] = gPlayState->actorCtx.sceneFlags.collectible[0];
 
     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
 }
@@ -714,12 +712,12 @@ void Anchor_ParseSaveStateFromRemote(nlohmann::json payload){
     //     }
     // }
 
-    // // Restore ammo if it's non-zero, unless it's beans
-    // for (int i = 0; i < ARRAY_COUNT(gSaveContext.inventory.ammo); i++) {
-    //     if (gSaveContext.inventory.ammo[i] != 0 && i != SLOT(ITEM_BEAN) && i != SLOT(ITEM_BEAN + 1)) {
-    //         loadedData.inventory.ammo[i] = gSaveContext.inventory.ammo[i];
-    //     }
-    // }
+    // Restore ammo if it's non-zero,
+    for (int i = 0; i < ARRAY_COUNT(gSaveContext.save.saveInfo.inventory.ammo); i++) {
+        if (gSaveContext.save.saveInfo.inventory.ammo[i] != 0 ) {
+            loadedData.save.saveInfo.inventory.ammo[i] = gSaveContext.save.saveInfo.inventory.ammo[i];
+        }
+    }
 
     //Set day/time
     gSaveContext.save.time = loadedData.save.time;
