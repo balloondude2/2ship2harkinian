@@ -598,9 +598,10 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
 
     
         // TODO: Look into quest items and dungeon items (songs and small keys)
-        // Pretty sure Item_GiveImpl will try to add small key to current scene
+        // Pretty sure Item_GiveImpl will try to add small key to current scene, not correct dungeon
         // Map is given but doesn't display on other clients
-        // Magic not given
+        // Magic not given, I assume same with double magic and double defense.
+        // Might need to hook into z_bg_dy_yoseizo.c line:325ish
         Item_GiveImpl(gPlayState, item);
 
         Anchor_DisplayMessage({ //.prefix = payload["getItemId"].get<int16_t>(),
@@ -879,6 +880,8 @@ void Anchor_RequestSaveStateFromRemote() {
 
 void Anchor_ParseSaveStateFromRemote(nlohmann::json payload) {
     SaveContext loadedData = payload.get<SaveContext>();
+
+    // TODO: Decide what else to sync. Owls, etc?
 
     // from_json for SaveContext doesn't have CycleSceneFlags, so manually parse them
     CycleSceneFlags sceneFlags[120];
