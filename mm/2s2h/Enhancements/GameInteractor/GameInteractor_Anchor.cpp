@@ -926,8 +926,6 @@ void Anchor_ParseSaveStateFromRemote(nlohmann::json payload) {
             gPlayState->actorCtx.sceneFlags.switches[0] = gSaveContext.cycleSceneFlags[i].switch0;
             gPlayState->actorCtx.sceneFlags.switches[1] = gSaveContext.cycleSceneFlags[i].switch1;
             gPlayState->actorCtx.sceneFlags.clearedRoom = gSaveContext.cycleSceneFlags[i].clearedRoom;
-            // I'm not sure how to translate the u32 colllectible in saveContext to the u32[4] in actorCtx
-            //  z_play.c line:1995 matches actorCtx..collectible[0] to cycleScene.collectible
             gPlayState->actorCtx.sceneFlags.collectible[0] = gSaveContext.cycleSceneFlags[i].collectible;
         }
     }
