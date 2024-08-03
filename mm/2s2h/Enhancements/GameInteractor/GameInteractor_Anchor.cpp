@@ -881,7 +881,7 @@ void Anchor_RequestSaveStateFromRemote() {
 void Anchor_ParseSaveStateFromRemote(nlohmann::json payload) {
     SaveContext loadedData = payload.get<SaveContext>();
 
-    // TODO: Decide what else to sync. Owls, etc?
+    // TODO: Decide what else to sync. Owls, threeDayResetCount, firstCycle, rupees, skulltulas, stolen items, regionsVisited, worldMapCloudVisiblity, etc?
 
     // from_json for SaveContext doesn't have CycleSceneFlags, so manually parse them
     CycleSceneFlags sceneFlags[120];
