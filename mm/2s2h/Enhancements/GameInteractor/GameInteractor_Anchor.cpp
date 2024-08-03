@@ -32,6 +32,7 @@ extern PlayState* gPlayState;
 extern SaveContext gSaveContext;
 extern u16 sPersistentCycleWeekEventRegs[ARRAY_COUNT(gSaveContext.save.saveInfo.weekEventReg)];
 extern PersistentCycleSceneFlags sPersistentCycleSceneFlags[SCENE_MAX];
+extern u8 Item_GiveImpl(PlayState* play, u8 item);
 }
 
 // TODO: Don't hardcode this, maybe move en_ben from actor_table. soh has actorDB
@@ -71,6 +72,267 @@ void from_json(const json& j, CycleSceneFlags& flags) {
     j.at("clearedRoom").get_to(flags.clearedRoom);
     j.at("collectible").get_to(flags.collectible);
 }
+
+std::vector<std::string> itemNames = {
+    /* 0x00 */ "ITEM_OCARINA_OF_TIME",
+    /* 0x01 */ "ITEM_BOW",
+    /* 0x02 */ "ITEM_ARROW_FIRE",
+    /* 0x03 */ "ITEM_ARROW_ICE",
+    /* 0x04 */ "ITEM_ARROW_LIGHT",
+    /* 0x05 */ "ITEM_OCARINA_FAIRY",
+    /* 0x06 */ "ITEM_BOMB",
+    /* 0x07 */ "ITEM_BOMBCHU",
+    /* 0x08 */ "ITEM_DEKU_STICK",
+    /* 0x09 */ "ITEM_DEKU_NUT",
+    /* 0x0A */ "ITEM_MAGIC_BEANS",
+    /* 0x0B */ "ITEM_SLINGSHOT",
+    /* 0x0C */ "ITEM_POWDER_KEG",
+    /* 0x0D */ "ITEM_PICTOGRAPH_BOX",
+    /* 0x0E */ "ITEM_LENS_OF_TRUTH",
+    /* 0x0F */ "ITEM_HOOKSHOT",
+    /* 0x10 */ "ITEM_SWORD_GREAT_FAIRY",
+    /* 0x11 */ "ITEM_LONGSHOT", // OoT Leftover
+    /* 0x12 */ "ITEM_BOTTLE",
+    /* 0x13 */ "ITEM_POTION_RED",
+    /* 0x14 */ "ITEM_POTION_GREEN",
+    /* 0x15 */ "ITEM_POTION_BLUE",
+    /* 0x16 */ "ITEM_FAIRY",
+    /* 0x17 */ "ITEM_DEKU_PRINCESS",
+    /* 0x18 */ "ITEM_MILK_BOTTLE",
+    /* 0x19 */ "ITEM_MILK_HALF",
+    /* 0x1A */ "ITEM_FISH",
+    /* 0x1B */ "ITEM_BUG",
+    /* 0x1C */ "ITEM_BLUE_FIRE",
+    /* 0x1D */ "ITEM_POE",
+    /* 0x1E */ "ITEM_BIG_POE",
+    /* 0x1F */ "ITEM_SPRING_WATER",
+    /* 0x20 */ "ITEM_HOT_SPRING_WATER",
+    /* 0x21 */ "ITEM_ZORA_EGG",
+    /* 0x22 */ "ITEM_GOLD_DUST",
+    /* 0x23 */ "ITEM_MUSHROOM",
+    /* 0x24 */ "ITEM_SEAHORSE",
+    /* 0x25 */ "ITEM_CHATEAU",
+    /* 0x26 */ "ITEM_HYLIAN_LOACH",
+    /* 0x27 */ "ITEM_OBABA_DRINK",
+    /* 0x28 */ "ITEM_MOONS_TEAR",
+    /* 0x29 */ "ITEM_DEED_LAND",
+    /* 0x2A */ "ITEM_DEED_SWAMP",
+    /* 0x2B */ "ITEM_DEED_MOUNTAIN",
+    /* 0x2C */ "ITEM_DEED_OCEAN",
+    /* 0x2D */ "ITEM_ROOM_KEY",
+    /* 0x2E */ "ITEM_LETTER_MAMA",
+    /* 0x2F */ "ITEM_LETTER_TO_KAFEI",
+    /* 0x30 */ "ITEM_PENDANT_OF_MEMORIES",
+    /* 0x31 */ "ITEM_TINGLE_MAP",
+    /* 0x32 */ "ITEM_MASK_DEKU",
+    /* 0x33 */ "ITEM_MASK_GORON",
+    /* 0x34 */ "ITEM_MASK_ZORA",
+    /* 0x35 */ "ITEM_MASK_FIERCE_DEITY",
+    /* 0x36 */ "ITEM_MASK_TRUTH",
+    /* 0x37 */ "ITEM_MASK_KAFEIS_MASK",
+    /* 0x38 */ "ITEM_MASK_ALL_NIGHT",
+    /* 0x39 */ "ITEM_MASK_BUNNY",
+    /* 0x3A */ "ITEM_MASK_KEATON",
+    /* 0x3B */ "ITEM_MASK_GARO",
+    /* 0x3C */ "ITEM_MASK_ROMANI",
+    /* 0x3D */ "ITEM_MASK_CIRCUS_LEADER",
+    /* 0x3E */ "ITEM_MASK_POSTMAN",
+    /* 0x3F */ "ITEM_MASK_COUPLE",
+    /* 0x40 */ "ITEM_MASK_GREAT_FAIRY",
+    /* 0x41 */ "ITEM_MASK_GIBDO",
+    /* 0x42 */ "ITEM_MASK_DON_GERO",
+    /* 0x43 */ "ITEM_MASK_KAMARO",
+    /* 0x44 */ "ITEM_MASK_CAPTAIN",
+    /* 0x45 */ "ITEM_MASK_STONE",
+    /* 0x46 */ "ITEM_MASK_BREMEN",
+    /* 0x47 */ "ITEM_MASK_BLAST",
+    /* 0x48 */ "ITEM_MASK_SCENTS",
+    /* 0x49 */ "ITEM_MASK_GIANT",
+    /* 0x4A */ "ITEM_BOW_FIRE",
+    /* 0x4B */ "ITEM_BOW_ICE",
+    /* 0x4C */ "ITEM_BOW_LIGHT",
+    /* 0x4D */ "ITEM_SWORD_KOKIRI",
+    /* 0x4E */ "ITEM_SWORD_RAZOR",
+    /* 0x4F */ "ITEM_SWORD_GILDED",
+    /* 0x50 */ "ITEM_SWORD_DEITY",
+    /* 0x51 */ "ITEM_SHIELD_HERO",
+    /* 0x52 */ "ITEM_SHIELD_MIRROR",
+    /* 0x53 */ "ITEM_QUIVER_30",
+    /* 0x54 */ "ITEM_QUIVER_40",
+    /* 0x55 */ "ITEM_QUIVER_50",
+    /* 0x56 */ "ITEM_BOMB_BAG_20",
+    /* 0x57 */ "ITEM_BOMB_BAG_30",
+    /* 0x58 */ "ITEM_BOMB_BAG_40",
+    /* 0x59 */ "ITEM_WALLET_DEFAULT",
+    /* 0x5A */ "ITEM_WALLET_ADULT",
+    /* 0x5B */ "ITEM_WALLET_GIANT",
+    /* 0x5C */ "ITEM_FISHING_ROD",
+    /* 0x5D */ "ITEM_REMAINS_ODOLWA",
+    /* 0x5E */ "ITEM_REMAINS_GOHT",
+    /* 0x5F */ "ITEM_REMAINS_GYORG",
+    /* 0x60 */ "ITEM_REMAINS_TWINMOLD",
+    /* 0x61 */ "ITEM_SONG_SONATA",
+    /* 0x62 */ "ITEM_SONG_LULLABY",
+    /* 0x63 */ "ITEM_SONG_NOVA",
+    /* 0x64 */ "ITEM_SONG_ELEGY",
+    /* 0x65 */ "ITEM_SONG_OATH",
+    /* 0x66 */ "ITEM_SONG_SARIA",
+    /* 0x67 */ "ITEM_SONG_TIME",
+    /* 0x68 */ "ITEM_SONG_HEALING",
+    /* 0x69 */ "ITEM_SONG_EPONA",
+    /* 0x6A */ "ITEM_SONG_SOARING",
+    /* 0x6B */ "ITEM_SONG_STORMS",
+    /* 0x6C */ "ITEM_SONG_SUN",
+    /* 0x6D */ "ITEM_BOMBERS_NOTEBOOK",
+    /* 0x6E */ "ITEM_SKULL_TOKEN",
+    /* 0x6F */ "ITEM_HEART_CONTAINER",
+    /* 0x70 */ "ITEM_HEART_PIECE",
+    /* 0x71 */ "ITEM_71",
+    /* 0x72 */ "ITEM_72",
+    /* 0x73 */ "ITEM_SONG_LULLABY_INTRO",
+    /* 0x74 */ "ITEM_KEY_BOSS",
+    /* 0x75 */ "ITEM_COMPASS",
+    /* 0x76 */ "ITEM_DUNGEON_MAP",
+    /* 0x77 */ "ITEM_STRAY_FAIRIES",
+    /* 0x78 */ "ITEM_KEY_SMALL",
+    /* 0x79 */ "ITEM_MAGIC_JAR_SMALL",
+    /* 0x7A */ "ITEM_MAGIC_JAR_BIG",
+    /* 0x7B */ "ITEM_HEART_PIECE_2",
+    /* 0x7C */ "ITEM_INVALID_1",
+    /* 0x7D */ "ITEM_INVALID_2",
+    /* 0x7E */ "ITEM_INVALID_3",
+    /* 0x7F */ "ITEM_INVALID_4",
+    /* 0x80 */ "ITEM_INVALID_5",
+    /* 0x81 */ "ITEM_INVALID_6",
+    /* 0x82 */ "ITEM_INVALID_7",
+    /* 0x83 */ "ITEM_RECOVERY_HEART",
+    /* 0x84 */ "ITEM_RUPEE_GREEN",
+    /* 0x85 */ "ITEM_RUPEE_BLUE",
+    /* 0x86 */ "ITEM_RUPEE_10",
+    /* 0x87 */ "ITEM_RUPEE_RED",
+    /* 0x88 */ "ITEM_RUPEE_PURPLE",
+    /* 0x89 */ "ITEM_RUPEE_SILVER",
+    /* 0x8A */ "ITEM_RUPEE_HUGE",
+    /* 0x8B */ "ITEM_DEKU_STICKS_5",
+    /* 0x8C */ "ITEM_DEKU_STICKS_10",
+    /* 0x8D */ "ITEM_DEKU_NUTS_5",
+    /* 0x8E */ "ITEM_DEKU_NUTS_10",
+    /* 0x8F */ "ITEM_BOMBS_5",
+    /* 0x90 */ "ITEM_BOMBS_10",
+    /* 0x91 */ "ITEM_BOMBS_20",
+    /* 0x92 */ "ITEM_BOMBS_30",
+    /* 0x93 */ "ITEM_ARROWS_10",
+    /* 0x94 */ "ITEM_ARROWS_30",
+    /* 0x95 */ "ITEM_ARROWS_40",
+    /* 0x96 */ "ITEM_ARROWS_50",
+    /* 0x97 */ "ITEM_BOMBCHUS_20",
+    /* 0x98 */ "ITEM_BOMBCHUS_10",
+    /* 0x99 */ "ITEM_BOMBCHUS_1",
+    /* 0x9A */ "ITEM_BOMBCHUS_5",
+    /* 0x9B */ "ITEM_DEKU_STICK_UPGRADE_20",
+    /* 0x9C */ "ITEM_DEKU_STICK_UPGRADE_30",
+    /* 0x9D */ "ITEM_DEKU_NUT_UPGRADE_30",
+    /* 0x9E */ "ITEM_DEKU_NUT_UPGRADE_40",
+    /* 0x9F */ "ITEM_CHATEAU_2",
+    /* 0xA0 */ "ITEM_MILK",
+    /* 0xA1 */ "ITEM_GOLD_DUST_2",
+    /* 0xA2 */ "ITEM_HYLIAN_LOACH_2",
+    /* 0xA3 */ "ITEM_SEAHORSE_CAUGHT",
+    // First entries of `MAP_POINT` must be continguous with `RegionId`
+    /* 0xA4 */ "ITEM_MAP_POINT_GREAT_BAY",
+    /* 0xA5 */ "ITEM_MAP_POINT_ZORA_HALL",
+    /* 0xA6 */ "ITEM_MAP_POINT_ROMANI_RANCH",
+    /* 0xA7 */ "ITEM_MAP_POINT_DEKU_PALACE",
+    /* 0xA8 */ "ITEM_MAP_POINT_WOODFALL",
+    /* 0xA9 */ "ITEM_MAP_POINT_CLOCK_TOWN",
+    /* 0xAA */ "ITEM_MAP_POINT_SNOWHEAD",
+    /* 0xAB */ "ITEM_MAP_POINT_IKANA_GRAVEYARD",
+    /* 0xAC */ "ITEM_MAP_POINT_IKANA_CANYON",
+    /* 0xAD */ "ITEM_MAP_POINT_GORON_VILLAGE",
+    /* 0xAE */ "ITEM_MAP_POINT_STONE_TOWER",
+    // Remaining map points are unique to owl warps
+    /* 0xAF */ "ITEM_MAP_POINT_GREAT_BAY_COAST",
+    /* 0xBO */ "ITEM_MAP_POINT_SOUTHERN_SWAMP",
+    /* 0xB1 */ "ITEM_MAP_POINT_MOUNTAIN_VILLAGE",
+    /* 0xB2 */ "ITEM_MAP_POINT_MILK_ROAD",
+    /* 0xB3 */ "ITEM_MAP_POINT_ZORA_CAPE",
+    /* 0xB4 */ "ITEM_B4",
+    /* 0xB5 */ "ITEM_B5",
+    /* 0xB6 */ "ITEM_B6",
+    /* 0xB7 */ "ITEM_B7",
+    /* 0xB8 */ "ITEM_B8",
+    /* 0xB9 */ "ITEM_B9",
+    /* 0xBA */ "ITEM_BA",
+    /* 0xBB */ "ITEM_BB",
+    /* 0xBC */ "ITEM_BC",
+    /* 0xBD */ "ITEM_BD",
+    /* 0xBE */ "ITEM_BE",
+    /* 0xBF */ "ITEM_BF",
+    /* 0xC0 */ "ITEM_C0",
+    /* 0xC1 */ "ITEM_C1",
+    /* 0xC2 */ "ITEM_C2",
+    /* 0xC3 */ "ITEM_C3",
+    /* 0xC4 */ "ITEM_C4",
+    /* 0xC5 */ "ITEM_C5",
+    /* 0xC6 */ "ITEM_C6",
+    /* 0xC7 */ "ITEM_C7",
+    /* 0xC8 */ "ITEM_C8",
+    /* 0xC9 */ "ITEM_C9",
+    /* 0xCA */ "ITEM_CA",
+    /* 0xCB */ "ITEM_CB",
+    /* 0xCC */ "ITEM_CC",
+    /* 0xCD */ "ITEM_CD",
+    /* 0xCE */ "ITEM_CE",
+    /* 0xCF */ "ITEM_CF",
+    /* 0xD0 */ "ITEM_D0",
+    /* 0xD1 */ "ITEM_D1",
+    /* 0xD2 */ "ITEM_D2",
+    /* 0xD3 */ "ITEM_D3",
+    /* 0xD4 */ "ITEM_D4",
+    /* 0xD5 */ "ITEM_D5",
+    /* 0xD6 */ "ITEM_D6",
+    /* 0xD7 */ "ITEM_D7",
+    /* 0xD8 */ "ITEM_D8",
+    /* 0xD9 */ "ITEM_D9",
+    /* 0xDA */ "ITEM_DA",
+    /* 0xDB */ "ITEM_DB",
+    /* 0xDC */ "ITEM_DC",
+    /* 0xDD */ "ITEM_DD",
+    /* 0xDE */ "ITEM_DE",
+    /* 0xDF */ "ITEM_DF",
+    /* 0xE0 */ "ITEM_E0",
+    /* 0xE1 */ "ITEM_E1",
+    /* 0xE2 */ "ITEM_E2",
+    /* 0xE3 */ "ITEM_E3",
+    /* 0xE4 */ "ITEM_E4",
+    /* 0xE5 */ "ITEM_E5",
+    /* 0xE6 */ "ITEM_E6",
+    /* 0xE7 */ "ITEM_E7",
+    /* 0xE8 */ "ITEM_E8",
+    /* 0xE9 */ "ITEM_E9",
+    /* 0xEA */ "ITEM_EA",
+    /* 0xEB */ "ITEM_EB",
+    /* 0xEC */ "ITEM_EC",
+    /* 0xED */ "ITEM_ED",
+    /* 0xEE */ "ITEM_EE",
+    /* 0xEF */ "ITEM_EF",
+    /* 0xF0 */ "ITEM_F0"  // PLAYER_MASK_BLAST"
+    /* 0xF1 */ "ITEM_F1", // PLAYER_MASK_BREMEN"
+    /* 0xF2 */ "ITEM_F2", // PLAYER_MASK_KAMARO"
+    /* 0xF3 */ "ITEM_F3",
+    /* 0xF4 */ "ITEM_F4",
+    /* 0xF5 */ "ITEM_F5",
+    /* 0xF6 */ "ITEM_F6",
+    /* 0xF7 */ "ITEM_F7",
+    /* 0xF8 */ "ITEM_F8",
+    /* 0xF9 */ "ITEM_F9",
+    /* 0xFA */ "ITEM_FA",
+    /* 0xFB */ "ITEM_FB",
+    /* 0xFC */ "ITEM_FC",
+    /* 0xFD */ "ITEM_FD",
+    /* 0xFE */ "ITEM_FE",
+    /* 0xFF */ "ITEM_NONE",
+};
 
 std::vector<std::string> sceneNames = {
     /* 0x00 */ "Southern Swamp (Clear)",
@@ -191,6 +453,10 @@ std::vector<std::string> sceneNames = {
 
 const std::string& GetSceneName(uint8_t scene) {
     return sceneNames[scene];
+}
+
+const std::string& GetItemName(uint8_t item) {
+    return itemNames[item];
 }
 
 std::map<uint32_t, AnchorClient> GameInteractorAnchor::AnchorClients = {};
@@ -324,11 +590,18 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
         // add item to inventory
         // use proxysaw's demo a few weeks ago
 
-        // TODO: Look into quest items and dungeon items (songs and small keys)
 
         AnchorClient anchorClient = GameInteractorAnchor::AnchorClients[payload["clientId"].get<uint32_t>()];
         int16_t item = payload["getItemId"].get<int16_t>();
-        std::string itemString = std::to_string(item);
+        std::string itemString = GetItemName(item);
+        
+
+    
+        // TODO: Look into quest items and dungeon items (songs and small keys)
+        // Pretty sure Item_GiveImpl will try to add small key to current scene
+        // Map is given but doesn't display on other clients
+        // Magic not given
+        Item_GiveImpl(gPlayState, item);
 
         Anchor_DisplayMessage({ //.prefix = payload["getItemId"].get<int16_t>(),
                                 .prefix = itemString,
@@ -483,12 +756,6 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
             if (payload.contains("playerData")) {
                 GameInteractorAnchor::AnchorClients[clientId].playerData = payload["playerData"].get<PlayerData>();
             }
-            if (payload.contains("jointTable")) {
-                std::vector<Vec3s> jointTable = payload["jointTable"].get<std::vector<Vec3s>>();
-                for (int i = 0; i < 23; i++) {
-                    GameInteractorAnchor::AnchorClients[clientId].jointTable[i] = jointTable[i];
-                }
-            }
         }
     }
     if (payload["type"] == "PUSH_SAVE_STATE" && GameInteractor::IsSaveLoaded()) {
@@ -516,7 +783,6 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
                     client.entranceIndex,
                     { -9999, -9999, -9999, 0, 0, 0 },
                     { 0 },
-                    {},
                 };
                 Anchor_DisplayMessage(
                     { .prefix = client.name, .prefixColor = ImVec4(1.0f, 0.5f, 0.5f, 1.0f), .message = "connected" });
@@ -593,7 +859,8 @@ void Anchor_PushSaveStateToRemote() {
     payload["cycleSceneFlags"] = gSaveContext.cycleSceneFlags;
 
     // TODO: Probably need to account for inverted stone tower. See Play_SaveCycleSceneFlags() in z_play.c. Here and
-    // other places manually update current scene flags
+    // other places 
+    // manually update current scene flags
     payload["cycleSceneFlags"][gPlayState->sceneId]["chest"] = gPlayState->actorCtx.sceneFlags.chest;
     payload["cycleSceneFlags"][gPlayState->sceneId]["switch0"] = gPlayState->actorCtx.sceneFlags.switches[0];
     payload["cycleSceneFlags"][gPlayState->sceneId]["switch1"] = gPlayState->actorCtx.sceneFlags.switches[1];
@@ -763,14 +1030,6 @@ PlayerData Anchor_GetClientPlayerData(uint32_t actorIndex) {
         return { 0 };
 
     return client->playerData;
-}
-
-Vec3s* Anchor_GetClientJointTable(uint32_t actorIndex) {
-    AnchorClient* client = Anchor_GetClientByActorIndex(actorIndex);
-    if (client == nullptr)
-        return {};
-
-    return client->jointTable;
 }
 
 const char* Anchor_GetClientName(uint32_t actorIndex) {
