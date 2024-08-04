@@ -30,6 +30,7 @@ extern "C" {
 extern GameState* gGameState;
 extern PlayState* gPlayState;
 extern SaveContext gSaveContext;
+extern TexturePtr gItemIcons[131];
 extern u16 sPersistentCycleWeekEventRegs[ARRAY_COUNT(gSaveContext.save.saveInfo.weekEventReg)];
 extern PersistentCycleSceneFlags sPersistentCycleSceneFlags[SCENE_MAX];
 extern u8 Item_GiveImpl(PlayState* play, u8 item);
@@ -546,7 +547,8 @@ bool WeekEventReg_Persistance(u32 flag) {
 }
 
 bool SceneFlag_Persistance(int16_t sceneNum, FlagType flagType, uint32_t flag) {
-    // TODO: What flags do we send?
+    // Only switch0, switch1, chest, and collectible persist
+    // ClearedRoom might "persist" through permanentSceneFlags. unk_14 and rooms seem to be set to 0 on cycle reset
     switch (flagType) {
         case FLAG_CYCL_SCENE_CHEST:
             return (Flags_GetTreasure(gPlayState, flag) & sPersistentCycleSceneFlags[sceneNum].chest);
@@ -556,8 +558,6 @@ bool SceneFlag_Persistance(int16_t sceneNum, FlagType flagType, uint32_t flag) {
             } else if ((flag & ~0x1F) >> 5 == 1) {
                 return (Flags_GetSwitch(gPlayState, flag) & sPersistentCycleSceneFlags[sceneNum].switch1);
             }
-            break;
-        case FLAG_CYCL_SCENE_CLEARED_ROOM:
             break;
         case FLAG_CYCL_SCENE_COLLECTIBLE:
             return (Flags_GetCollectible(gPlayState, flag) & sPersistentCycleSceneFlags[sceneNum].collectible);
@@ -604,10 +604,18 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
         // Might need to hook into z_bg_dy_yoseizo.c line:325ish
         Item_GiveImpl(gPlayState, item);
 
-        Anchor_DisplayMessage({ //.prefix = payload["getItemId"].get<int16_t>(),
+        if (item <= 0x82) {
+            Anchor_DisplayMessage({ .itemIcon = (const char*)gItemIcons[item],
                                 .prefix = itemString,
                                 .message = "from",
                                 .suffix = anchorClient.name });
+        } else {
+            Anchor_DisplayMessage({ // .itemIcon = (const char*)gItemIcons[item],
+                                .prefix = itemString,
+                                .message = "from",
+                                .suffix = anchorClient.name });
+        }
+
     }
 
     if (payload["type"] == "SET_SCENE_FLAG") {
@@ -654,12 +662,13 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
                         gSaveContext.cycleSceneFlags[sceneId].switch1 |= (1 << (flag & 0x1F));
                     } else {
                         // It looks like temporary switch (switch[2] and [3]) data is stored in respawn stuff?
-                        LUSLOG_DEBUG("Nothing happend with flag index: %x", (flag & ~0x1F) >> 5);
+                        // LUSLOG_DEBUG("Nothing happend with flag index: %x", (flag & ~0x1F) >> 5);
                     }
                 }
                 break;
             case FLAG_CYCL_SCENE_CLEARED_ROOM:
                 // what's the difference between clear and clearTemp?
+                // currently not sending any cleared room flags
                 if (gPlayState->sceneId == sceneId) {
                     Flags_SetClear(gPlayState, flag);
                 } else {
@@ -674,7 +683,7 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
                     }
 
                     // TODO: Are there any other actor categories to check and kill?
-                    //  Check Boss remains, are there freestanding keys?
+                    //  Check Boss remains
                     Actor* actor = gPlayState->actorCtx.actorLists[ACTORCAT_MISC].first;
                     while (actor != NULL) {
                         // Probably should check that actorId = 0x0E before casting to EnItem00
@@ -1129,6 +1138,8 @@ void Anchor_RegisterHooks() {
         payload["type"] = "GIVE_ITEM";
         payload["getItemId"] = item;
 
+        // TODO: During a test, this triggered twice when getting Kafei's mask (the scene flags were also sent twice)
+
         GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
     });
 
@@ -1139,7 +1150,8 @@ void Anchor_RegisterHooks() {
             }
 
             // TODO: What flags do we send?
-            // Currently only sending permanent flags
+            // Currently only sending persistant flags
+            // what about permanent flags (clearedRoom, unk_14, rooms)
             if (!SceneFlag_Persistance(sceneNum, flagType, flag)) {
                 return;
             }
