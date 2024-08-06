@@ -548,7 +548,7 @@ bool WeekEventReg_Persistance(u32 flag) {
 
 bool SceneFlag_Persistance(int16_t sceneNum, FlagType flagType, uint32_t flag) {
     // Only switch0, switch1, chest, and collectible persist
-    // ClearedRoom might "persist" through permanentSceneFlags. unk_14 and rooms seem to be set to 0 on cycle reset
+    // ClearedRoom, unk_14, and rooms are set to 0 on cycle reset
     switch (flagType) {
         case FLAG_CYCL_SCENE_CHEST:
             return (Flags_GetTreasure(gPlayState, flag) & sPersistentCycleSceneFlags[sceneNum].chest);
@@ -597,11 +597,9 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
         
 
     
-        // TODO: Look into quest items and dungeon items (songs and small keys)
-        // Pretty sure Item_GiveImpl will try to add small key to current scene, not correct dungeon
-        // Map is given but doesn't display on other clients
-        // Magic not given, I assume same with double magic and double defense.
-        // Might need to hook into z_bg_dy_yoseizo.c line:325ish
+        // TODO: Look into quest items and dungeon items (songs)
+        // Tingle Map is given but doesn't display on other clients (unable to buy from tingle). Dungeon maps seem to work. 
+        // Magic not given, I assume same with double magic and double defense. Might need to hook into z_bg_dy_yoseizo.c line:325ish
         Item_GiveImpl(gPlayState, item);
 
         if (item <= 0x82) {
@@ -624,26 +622,12 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
         u32 flagType = payload["flagType"].get<uint32_t>();
         u32 flag = payload["flag"].get<uint32_t>();
 
+        // Copied logic from z_actor.c to not call GameInteractor_ExecuteOnSceneFlagSet()
+        // GameInteractor_ExecuteOnSceneFlagSet() currently only sends the following flagTypes
+        LUSLOG_DEBUG("flagType: %d", flagType);
         switch (flagType) {
-            case FLAG_NONE:
-            case FLAG_WEEK_EVENT_REG:
-            case FLAG_EVENT_INF:
-            case FLAG_SCENES_VISIBLE:
-            case FLAG_OWL_ACTIVATION:
-                // not scene flags
-                break;
-            case FLAG_PERM_SCENE_CHEST:
-            case FLAG_PERM_SCENE_SWITCH:
-            case FLAG_PERM_SCENE_CLEARED_ROOM:
-            case FLAG_PERM_SCENE_COLLECTIBLE:
-            case FLAG_PERM_SCENE_UNK_14:
-            case FLAG_PERM_SCENE_ROOMS:
-                // scene flag hook never sends PERM flags
-                break;
             case FLAG_CYCL_SCENE_CHEST:
                 if (gPlayState->sceneId == sceneId) {
-                    // Flags_SetTreasure triggers hook, which we don't want
-                    // Flags_SetTreasure(gPlayState, flag);
                     gPlayState->actorCtx.sceneFlags.chest |= (1 << flag);
                 } else {
                     gSaveContext.cycleSceneFlags[sceneId].chest |= (1 << flag);
@@ -651,45 +635,37 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
                 break;
             case FLAG_CYCL_SCENE_SWITCH:
                 if (gPlayState->sceneId == sceneId) {
-                    // Flags_SetSwitch(gPlayState, flag);
-                    if ((flag > SWITCH_FLAG_NONE) && (flag < 0x80)) {
-                        gPlayState->actorCtx.sceneFlags.switches[(flag & ~0x1F) >> 5] |= 1 << (flag & 0x1F);
-                    }
+                    gPlayState->actorCtx.sceneFlags.switches[(flag & ~0x1F) >> 5] |= 1 << (flag & 0x1F);
                 } else {
                     if ((flag & ~0x1F) >> 5 == 0) {
                         gSaveContext.cycleSceneFlags[sceneId].switch0 |= (1 << (flag & 0x1F));
                     } else if ((flag & ~0x1F) >> 5 == 1) {
                         gSaveContext.cycleSceneFlags[sceneId].switch1 |= (1 << (flag & 0x1F));
-                    } else {
-                        // It looks like temporary switch (switch[2] and [3]) data is stored in respawn stuff?
-                        // LUSLOG_DEBUG("Nothing happend with flag index: %x", (flag & ~0x1F) >> 5);
-                    }
+                    } // else switch2 and switch3 are persistant and not sent
                 }
                 break;
             case FLAG_CYCL_SCENE_CLEARED_ROOM:
-                // what's the difference between clear and clearTemp?
-                // currently not sending any cleared room flags
+                // clearedRoom not currently sent (not persistant)
                 if (gPlayState->sceneId == sceneId) {
-                    Flags_SetClear(gPlayState, flag);
+                    gPlayState->actorCtx.sceneFlags.clearedRoom |= (1 << flag);
                 } else {
                     gSaveContext.cycleSceneFlags[sceneId].clearedRoom |= (1 << flag);
                 }
                 break;
             case FLAG_CYCL_SCENE_COLLECTIBLE:
                 if (gPlayState->sceneId == sceneId) {
-                    // Flags_SetCollectible(gPlayState, flag);
-                    if ((flag > 0) && (flag < 0x80)) {
-                        gPlayState->actorCtx.sceneFlags.collectible[(flag & ~0x1F) >> 5] |= 1 << (flag & 0x1F);
-                    }
-
-                    // TODO: Are there any other actor categories to check and kill?
+                    gPlayState->actorCtx.sceneFlags.collectible[(flag & ~0x1F) >> 5] |= 1 << (flag & 0x1F);
+                    
+                    // TODO: Are there any other actor categories/ids to check and kill? Is there a better way to do this?
                     //  Check Boss remains
                     Actor* actor = gPlayState->actorCtx.actorLists[ACTORCAT_MISC].first;
                     while (actor != NULL) {
-                        // Probably should check that actorId = 0x0E before casting to EnItem00
-                        EnItem00* item = ((EnItem00*)actor);
-                        if (item->collectibleFlag == flag) {
-                            Actor_Kill(actor);
+                        // TODO: Avoid hardcoding the check whether actor is EnItem00
+                        if (actor->id == 0xE) {
+                            EnItem00* item = ((EnItem00*)actor);
+                            if (item->collectibleFlag == flag) {
+                                Actor_Kill(actor);
+                            }
                         }
                         actor = actor->next;
                     }
@@ -700,58 +676,103 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
             default:
                 break;
         }
-
-        // AnchorClient anchorClient = GameInteractorAnchor::AnchorClients[payload["clientId"].get<uint32_t>()];
+        
         std::string s1 = std::to_string(sceneId);
         std::string s2 = std::to_string(flagType);
         std::string s3 = std::to_string(flag);
 
-        Anchor_DisplayMessage({ //.prefix = payload["getItemId"].get<int16_t>(),
-                                .prefix = "set scene flag",
+        Anchor_DisplayMessage({ .prefix = "set scene flag",
                                 .message = s2,
                                 .suffix = s3 });
     }
     if (payload["type"] == "SET_FLAG") {
-        // s16 sceneId = payload["sceneNum"].get<int16_t>();
         u32 flagType = payload["flagType"].get<uint32_t>();
         u32 flag = payload["flag"].get<uint32_t>();
+
+        // Copied logic from z_actor.c to not call GameInteractor_ExecuteOnFlagSet()
         switch (flagType) {
-            case FLAG_NONE:
-                break;
             case FLAG_WEEK_EVENT_REG:
-                Flags_SetWeekEventReg(flag);
+                WEEKEVENTREG((flag) >> 8) = GET_WEEKEVENTREG((flag) >> 8) | ((flag)&0xFF);
                 break;
             case FLAG_EVENT_INF:
-                // do we ever want to set any of these?
-            case FLAG_SCENES_VISIBLE:
-            case FLAG_OWL_ACTIVATION:
-                // scene flags never sent with hook
-            case FLAG_PERM_SCENE_CHEST:
-            case FLAG_PERM_SCENE_SWITCH:
-            case FLAG_PERM_SCENE_CLEARED_ROOM:
-            case FLAG_PERM_SCENE_COLLECTIBLE:
-            case FLAG_PERM_SCENE_UNK_14:
-            case FLAG_PERM_SCENE_ROOMS:
-            case FLAG_CYCL_SCENE_CHEST:
-            case FLAG_CYCL_SCENE_SWITCH:
-            case FLAG_CYCL_SCENE_CLEARED_ROOM:
-            case FLAG_CYCL_SCENE_COLLECTIBLE:
+                gSaveContext.eventInf[(flag) >> 4] |= (1 << ((flag)&0xF));
+                break;
             default:
+                // Other flag types not currently sent
                 break;
         }
 
-        // AnchorClient anchorClient = GameInteractorAnchor::AnchorClients[payload["clientId"].get<uint32_t>()];
-        // std::string s1 = std::to_string(sceneId);
         std::string s2 = std::to_string(flagType);
         std::string s3 = std::to_string(flag);
 
-        Anchor_DisplayMessage({ //.prefix = payload["getItemId"].get<int16_t>(),
-                                .prefix = "set flag",
+        Anchor_DisplayMessage({ .prefix = "set flag",
                                 .message = s2,
                                 .suffix = s3 });
     }
-    if (payload["type"] == "UNSET_SCENE_FLAG") {}
-    if (payload["type"] == "UNSET_FLAG") {}
+    if (payload["type"] == "UNSET_SCENE_FLAG") {
+
+        s16 sceneId = payload["sceneNum"].get<int16_t>();
+        u32 flagType = payload["flagType"].get<uint32_t>();
+        u32 flag = payload["flag"].get<uint32_t>();
+
+        // Copied logic from z_actor.c to not call GameInteractor_ExecuteOnSceneFlagUnset()
+        // GameInteractor_ExecuteOnSceneFlagUnset() currently only sends the following flagTypes
+        switch (flagType) {
+            case FLAG_CYCL_SCENE_SWITCH:
+                if (gPlayState->sceneId == sceneId) {
+                     gPlayState->actorCtx.sceneFlags.switches[(flag & ~0x1F) >> 5] &= ~(1 << (flag & 0x1F));
+                } else {
+                    if ((flag & ~0x1F) >> 5 == 0) {
+                        gSaveContext.cycleSceneFlags[sceneId].switch0 &= ~(1 << (flag & 0x1F));
+                    } else if ((flag & ~0x1F) >> 5 == 1) {
+                        gSaveContext.cycleSceneFlags[sceneId].switch1 &= ~(1 << (flag & 0x1F));
+                    } // other switches not currently sent
+                }
+                break;
+            case FLAG_CYCL_SCENE_CLEARED_ROOM:
+                // clearedRoom not currently sent (not persistant)
+                if (gPlayState->sceneId == sceneId) {
+                    gPlayState->actorCtx.sceneFlags.clearedRoom &= ~(1 << flag);
+                } else {
+                    gSaveContext.cycleSceneFlags[sceneId].clearedRoom &= ~(1 << flag);
+                }
+                break;
+            default:
+                break;
+        }
+        
+        std::string s1 = std::to_string(sceneId);
+        std::string s2 = std::to_string(flagType);
+        std::string s3 = std::to_string(flag);
+
+        Anchor_DisplayMessage({ .prefix = "unset scene flag",
+                                .message = s2,
+                                .suffix = s3 });
+    }
+    if (payload["type"] == "UNSET_FLAG") {
+        u32 flagType = payload["flagType"].get<uint32_t>();
+        u32 flag = payload["flag"].get<uint32_t>();
+
+        // Copied logic from z_actor.c to not call GameInteractor_ExecuteOnFlagUnset()
+        switch (flagType) {
+            case FLAG_WEEK_EVENT_REG:
+                WEEKEVENTREG((flag) >> 8) = GET_WEEKEVENTREG((flag) >> 8) & (u8) ~((flag)&0xFF);
+                break;
+            case FLAG_EVENT_INF:
+                gSaveContext.eventInf[(flag) >> 4] &= (u8) ~(1 << ((flag)&0xF));
+                break;
+            default:
+                // Other flag types not currently sent
+                break;
+        }
+
+        std::string s2 = std::to_string(flagType);
+        std::string s3 = std::to_string(flag);
+
+        Anchor_DisplayMessage({ .prefix = "unset flag",
+                                .message = s2,
+                                .suffix = s3 });
+    }
 
     if (payload["type"] == "CLIENT_UPDATE") {
         uint32_t clientId = payload["clientId"].get<uint32_t>();
@@ -1000,7 +1021,7 @@ void Anchor_ParseSaveStateFromRemote(nlohmann::json payload) {
     gSaveContext.save.saveInfo.inventory = loadedData.save.saveInfo.inventory;
 
     // TODO: Day on clock isn't updating (and probably other things)
-    //  Maybe void out?
+    //  Maybe void out? Maybe teleport to client?
     func_80169EFC(gGameState);
 
     gSaveContext.save.saveInfo.playerData.health = gSaveContext.save.saveInfo.playerData.healthCapacity;
@@ -1096,6 +1117,7 @@ static uint32_t lastSceneNum = SCENE_MAX;
 
 void Anchor_RegisterHooks() {
     // TODO: Might need to change this hook to be after scene commands
+    // TODO: Doesn't work with room transitions
     GameInteractor::Instance->RegisterGameHook<GameInteractor::OnSceneInit>([](s16 sceneId, s8 spawnNum) {
         if (gPlayState == NULL || !GameInteractor::Instance->isRemoteInteractorConnected) {
             return;
@@ -1139,6 +1161,7 @@ void Anchor_RegisterHooks() {
         payload["getItemId"] = item;
 
         // TODO: During a test, this triggered twice when getting Kafei's mask (the scene flags were also sent twice)
+        // Probably because the hooks are registered on the Enable button, which I hit twice that test
 
         GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
     });
@@ -1151,7 +1174,6 @@ void Anchor_RegisterHooks() {
 
             // TODO: What flags do we send?
             // Currently only sending persistant flags
-            // what about permanent flags (clearedRoom, unk_14, rooms)
             if (!SceneFlag_Persistance(sceneNum, flagType, flag)) {
                 return;
             }
@@ -1199,6 +1221,8 @@ void Anchor_RegisterHooks() {
             }
             nlohmann::json payload;
 
+            // GameInteractor_ExecuteOnSceneFlagUnset() only sends FLAG_CYCL_SCENE_SWITCH and FLAG_CYCL_SCENE_CLEARED_ROOM
+
             payload["type"] = "UNSET_SCENE_FLAG";
             payload["sceneNum"] = sceneNum;
             payload["flagType"] = flagType;
@@ -1220,6 +1244,8 @@ void Anchor_RegisterHooks() {
             return;
         }
         nlohmann::json payload;
+
+        // GameInteractor_ExecuteOnFlagUnset() only sends FLAG_WEEK_EVENT_REG and FLAG_EVENT_INF
 
         payload["type"] = "UNSET_FLAG";
         payload["flagType"] = flagType;
