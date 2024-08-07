@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <string>
 #include "2s2h/Enhancements/Enhancements.h"
+#include "2s2h/Enhancements/Graphics/3DItemDrops.h"
 #include "2s2h/Enhancements/Graphics/MotionBlur.h"
 #include "2s2h/Enhancements/Graphics/PlayAsKafei.h"
 #include "2s2h/Enhancements/Modes/TimeMovesWhenYouMove.h"
@@ -55,6 +56,12 @@ static const std::unordered_map<int32_t, const char*> alwaysWinDoggyraceOptions 
     { ALWAYS_WIN_DOGGY_RACE_OFF, "Off" },
     { ALWAYS_WIN_DOGGY_RACE_MASKOFTRUTH, "When owning Mask of Truth" },
     { ALWAYS_WIN_DOGGY_RACE_ALWAYS, "Always" },
+};
+
+static const std::unordered_map<int32_t, const char*> timeStopOptions = {
+    { TIME_STOP_OFF, "Off" },
+    { TIME_STOP_TEMPLES, "Temples" },
+    { TIME_STOP_TEMPLES_DUNGEONS, "Temples + Mini Dungeons" },
 };
 
 namespace BenGui {
@@ -538,6 +545,10 @@ void DrawEnhancementsMenu() {
                                                  "model and texture on the boot logo start screen" });
             UIWidgets::CVarCheckbox("Bow Reticle", "gEnhancements.Graphics.BowReticle",
                                     { .tooltip = "Gives the bow a reticle when you draw an arrow" });
+            if (UIWidgets::CVarCheckbox("3D Item Drops", "gEnhancements.Graphics.3DItemDrops",
+                                        { .tooltip = "Makes item drops 3D" })) {
+                Register3DItemDrops();
+            }
             UIWidgets::CVarCheckbox(
                 "Disable Black Bar Letterboxes", "gEnhancements.Graphics.DisableBlackBars",
                 { .tooltip = "Disables Black Bar Letterboxes during cutscenes and Z-targeting\nNote: there may be "
@@ -643,6 +654,9 @@ void DrawEnhancementsMenu() {
                                     { .tooltip = "Enables using the Dpad for Ocarina playback." });
             UIWidgets::CVarCheckbox("Prevent Dropped Ocarina Inputs", "gEnhancements.Playback.NoDropOcarinaInput",
                                     { .tooltip = "Prevent dropping inputs when playing the ocarina quickly" });
+            UIWidgets::CVarCheckbox("Pause Owl Warp", "gEnhancements.Songs.PauseOwlWarp",
+                                    { .tooltip = "Allows the player to use the pause menu map to owl warp instead of "
+                                                 "having to play the Song of Soaring." });
 
             ImGui::EndMenu();
         }
@@ -674,6 +688,14 @@ void DrawCheatsMenu() {
                                     { .tooltip = "Holding L makes you float into the air" })) {
             RegisterMoonJumpOnL();
         }
+        UIWidgets::CVarCombobox(
+            "Stop Time in Dungeons", "gCheats.TempleTimeStop", timeStopOptions,
+            { .tooltip = "Stops time from advancing in selected areas. Requires a room change to update.\n\n"
+                         "- Off: Vanilla behaviour.\n"
+                         "- Temples: Stops time in Woodfall, Snowhead, Great Bay, and Stone Tower Temples.\n"
+                         "- Temples + Mini Dungeons: In addition to the above temples, stops time in both Spider "
+                         "Houses, Pirate's Fortress, Beneath the Well, Ancient Castle of Ikana, and Secret Shrine.",
+              .defaultIndex = TIME_STOP_OFF });
 
         ImGui::EndMenu();
     }
