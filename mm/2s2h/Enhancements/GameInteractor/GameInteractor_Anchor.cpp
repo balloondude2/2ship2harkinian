@@ -1116,9 +1116,7 @@ void Anchor_RefreshClientActors() {
 static uint32_t lastSceneNum = SCENE_MAX;
 
 void Anchor_RegisterHooks() {
-    // TODO: Might need to change this hook to be after scene commands
-    // TODO: Doesn't work with room transitions
-    GameInteractor::Instance->RegisterGameHook<GameInteractor::OnSceneInit>([](s16 sceneId, s8 spawnNum) {
+    GameInteractor::Instance->RegisterGameHook<GameInteractor::AfterRoomSceneCommands>([](s16 sceneId, s8 spawnNum) {
         if (gPlayState == NULL || !GameInteractor::Instance->isRemoteInteractorConnected) {
             return;
         }
