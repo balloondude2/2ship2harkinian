@@ -925,7 +925,6 @@ void DrawNetworkMenu() {
                 CVarSetInteger("gRemote.Enabled", 1);
                 Ship::Context::GetInstance()->GetWindow()->GetGui()->SaveConsoleVariablesOnNextTick();
                 GameInteractorAnchor::Instance->Enable();
-                Anchor_RegisterHooks();
             }
         }
         if (CVarGetInteger("gRemote.Enabled", 0)) {

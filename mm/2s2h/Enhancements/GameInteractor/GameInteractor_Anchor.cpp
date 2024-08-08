@@ -1153,13 +1153,14 @@ void Anchor_RegisterHooks() {
     // });
 
     GameInteractor::Instance->RegisterGameHook<GameInteractor::OnItemGive>([](u8 item) {
+        if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) {
+                return;
+            }
+
         nlohmann::json payload;
 
         payload["type"] = "GIVE_ITEM";
         payload["getItemId"] = item;
-
-        // TODO: During a test, this triggered twice when getting Kafei's mask (the scene flags were also sent twice)
-        // Probably because the hooks are registered on the Enable button, which I hit twice that test
 
         // TODO: Small keys aren't persistant, neither are locks. So two clients can open the same small key
         // chest and end up with two keys for 1 lock. 
