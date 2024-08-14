@@ -72,6 +72,7 @@ void Anchor_RefreshClientActors();
 void Anchor_SendClientActors();
 void Anchor_RequestTeleport(uint32_t clientId);
 void Anchor_TeleportToPlayer(uint32_t clientId);
+void Anchor_FairyReward(uint32_t reward);
 
 #ifdef __cplusplus
 }

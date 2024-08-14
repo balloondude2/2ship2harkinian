@@ -209,6 +209,12 @@ void GameInteractor_ExecuteOnItemGive(u8 item) {
     GameInteractor::Instance->ExecuteHooksForFilter<GameInteractor::OnItemGive>(item);
 }
 
+void GameInteractor_ExecuteOnGreatFairyReward(GIFairyRewardType reward) {
+    GameInteractor::Instance->ExecuteHooks<GameInteractor::OnGreatFairyReward>(reward);
+    GameInteractor::Instance->ExecuteHooksForID<GameInteractor::OnGreatFairyReward>(reward, reward);
+    GameInteractor::Instance->ExecuteHooksForFilter<GameInteractor::OnGreatFairyReward>(reward);
+}
+
 bool GameInteractor_Should(GIVanillaBehavior flag, bool result, void* opt) {
     GameInteractor::Instance->ExecuteHooks<GameInteractor::ShouldVanillaBehavior>(flag, &result, opt);
     GameInteractor::Instance->ExecuteHooksForID<GameInteractor::ShouldVanillaBehavior>(flag, flag, &result, opt);

@@ -68,6 +68,12 @@ typedef enum {
     GI_DPAD_EQUIP,
 } GIDpadType;
 
+typedef enum {
+    GI_MAGIC,
+    GI_DOUBLE_MAGIC,
+    GI_DOUBLE_DEFENSE,
+} GIFairyRewardType;
+
 #ifdef __cplusplus
 
 #include <vector>
@@ -326,6 +332,8 @@ class GameInteractor {
     DEFINE_HOOK(ShouldItemGive, (u8 item, bool* should));
     DEFINE_HOOK(OnItemGive, (u8 item));
 
+    DEFINE_HOOK(OnGreatFairyReward, (GIFairyRewardType reward));
+
     DEFINE_HOOK(ShouldVanillaBehavior, (GIVanillaBehavior flag, bool* should, void* optionalArg));
 
     static bool IsSaveLoaded();
@@ -373,6 +381,8 @@ void GameInteractor_ExecuteOnOpenText(u16 textId);
 
 bool GameInteractor_ShouldItemGive(u8 item);
 void GameInteractor_ExecuteOnItemGive(u8 item);
+
+void GameInteractor_ExecuteOnGreatFairyReward(GIFairyRewardType reward);
 
 bool GameInteractor_Should(GIVanillaBehavior flag, bool result, void* optionalArg);
 #define REGISTER_VB_SHOULD(flag, body)                                                      \

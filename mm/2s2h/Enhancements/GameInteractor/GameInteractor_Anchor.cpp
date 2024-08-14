@@ -877,6 +877,28 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
     // if (payload["type"] == "RESET") {
     //     std::reinterpret_pointer_cast<LUS::ConsoleWindow>(LUS::Context::GetInstance()->GetWindow()->GetGui()->GetGuiWindow("Console"))->Dispatch("reset");
     // }
+    if (payload["type"] == "GIVE_FAIRY_REWARD") {
+        AnchorClient anchorClient = GameInteractorAnchor::AnchorClients[payload["clientId"].get<uint32_t>()];
+        uint32_t rewardType = payload["rewardType"].get<uint32_t>();
+        std::string reward = "";
+        Anchor_FairyReward(rewardType);
+        switch (rewardType) {
+            case GI_MAGIC:
+                reward = "Magic";
+                break;
+            case GI_DOUBLE_MAGIC:
+                reward = "Doubl Magic";
+                break;
+            case GI_DOUBLE_DEFENSE:
+                reward = "Double Defense";
+                break;
+        }
+
+        Anchor_DisplayMessage({ // .itemIcon = (const char*)gItemIcons[item],
+                                .prefix = reward,
+                                .message = "from",
+                                .suffix = anchorClient.name });
+    }
 }
 
 void Anchor_PushSaveStateToRemote() {
@@ -927,6 +949,12 @@ void Anchor_ParseSaveStateFromRemote(nlohmann::json payload) {
             loadedData.save.saveInfo.playerData.isDoubleMagicAcquired;
     } else if (loadedData.save.saveInfo.playerData.magicLevel == 1) {
         gSaveContext.magicCapacity = gSaveContext.save.saveInfo.playerData.magic = MAGIC_NORMAL_METER;
+        gSaveContext.save.saveInfo.playerData.magicLevel = loadedData.save.saveInfo.playerData.magicLevel;
+        gSaveContext.save.saveInfo.playerData.isMagicAcquired = loadedData.save.saveInfo.playerData.isMagicAcquired;
+        gSaveContext.save.saveInfo.playerData.isDoubleMagicAcquired =
+            loadedData.save.saveInfo.playerData.isDoubleMagicAcquired;
+    } else {
+        gSaveContext.magicCapacity = gSaveContext.save.saveInfo.playerData.magic = 0;
         gSaveContext.save.saveInfo.playerData.magicLevel = loadedData.save.saveInfo.playerData.magicLevel;
         gSaveContext.save.saveInfo.playerData.isMagicAcquired = loadedData.save.saveInfo.playerData.isMagicAcquired;
         gSaveContext.save.saveInfo.playerData.isDoubleMagicAcquired =
@@ -1110,6 +1138,30 @@ void Anchor_RefreshClientActors() {
     }
 }
 
+void Anchor_FairyReward(uint32_t reward) {
+    switch (reward) {
+        case GI_MAGIC:
+            gSaveContext.magicCapacity = gSaveContext.save.saveInfo.playerData.magic = MAGIC_NORMAL_METER;
+            gSaveContext.save.saveInfo.playerData.magicLevel = 1;
+            gSaveContext.save.saveInfo.playerData.isMagicAcquired = true;
+            gSaveContext.save.saveInfo.playerData.isDoubleMagicAcquired = false;
+            BUTTON_ITEM_EQUIP(PLAYER_FORM_DEKU, EQUIP_SLOT_B) = ITEM_DEKU_NUT;
+            break;
+        case GI_DOUBLE_MAGIC:
+            gSaveContext.magicCapacity = gSaveContext.save.saveInfo.playerData.magic = MAGIC_DOUBLE_METER;
+            gSaveContext.save.saveInfo.playerData.magicLevel = 2;
+            gSaveContext.save.saveInfo.playerData.isMagicAcquired = true;
+            gSaveContext.save.saveInfo.playerData.isDoubleMagicAcquired = true;
+            BUTTON_ITEM_EQUIP(PLAYER_FORM_DEKU, EQUIP_SLOT_B) = ITEM_DEKU_NUT;
+            break;
+        case GI_DOUBLE_DEFENSE:
+            gSaveContext.save.saveInfo.playerData.doubleDefense = true;
+            break;
+        default:
+            break;
+    }
+}
+
 static uint32_t lastSceneNum = SCENE_MAX;
 
 void Anchor_RegisterHooks() {
@@ -1167,6 +1219,19 @@ void Anchor_RegisterHooks() {
         // 3) Sync small keys and locks. Could be weird with some cycle resets maybe. Would require more complex logic on what flags to send
         // 4) Keep current logic unless current scene matches client's scene, in which case one of the other solutions is used
         // 5) Keep current logic. Probably not desirable.
+
+        GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
+    });
+
+    GameInteractor::Instance->RegisterGameHook<GameInteractor::OnGreatFairyReward>([](GIFairyRewardType reward) {
+        if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) {
+                return;
+            }
+
+        nlohmann::json payload;
+
+        payload["type"] = "GIVE_FAIRY_REWARD";
+        payload["rewardType"] = reward;
 
         GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
     });

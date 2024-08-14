@@ -7,6 +7,8 @@
 #include "z_bg_dy_yoseizo.h"
 #include "overlays/actors/ovl_Demo_Effect/z_demo_effect.h"
 
+#include "2s2h/Enhancements/GameInteractor/GameInteractor.h"
+
 #define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_20 | ACTOR_FLAG_2000000)
 
 #define THIS ((BgDyYoseizo*)thisx)
@@ -325,6 +327,7 @@ void func_80A0B35C(BgDyYoseizo* this, PlayState* play) {
                     if (gSaveContext.save.saveInfo.playerData.isMagicAcquired != true) {
                         gSaveContext.save.saveInfo.playerData.isMagicAcquired = true;
                         gSaveContext.magicFillTarget = MAGIC_NORMAL_METER;
+                        GameInteractor_ExecuteOnGreatFairyReward(GI_MAGIC);
                     }
                     break;
 
@@ -333,12 +336,14 @@ void func_80A0B35C(BgDyYoseizo* this, PlayState* play) {
                         gSaveContext.save.saveInfo.playerData.isDoubleMagicAcquired = true;
                         gSaveContext.magicFillTarget = MAGIC_DOUBLE_METER;
                         gSaveContext.save.saveInfo.playerData.magicLevel = 0;
+                        GameInteractor_ExecuteOnGreatFairyReward(GI_DOUBLE_MAGIC);
                     }
                     break;
 
                 case GREAT_FAIRY_TYPE_COURAGE:
                     if (gSaveContext.save.saveInfo.playerData.doubleDefense != true) {
                         gSaveContext.save.saveInfo.playerData.doubleDefense = true;
+                        GameInteractor_ExecuteOnGreatFairyReward(GI_DOUBLE_DEFENSE);
                     }
                     break;
 
