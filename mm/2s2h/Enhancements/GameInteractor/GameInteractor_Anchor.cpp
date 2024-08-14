@@ -590,13 +590,10 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
         // add item to inventory
         // use proxysaw's demo a few weeks ago
 
-
         AnchorClient anchorClient = GameInteractorAnchor::AnchorClients[payload["clientId"].get<uint32_t>()];
         int16_t item = payload["getItemId"].get<int16_t>();
         std::string itemString = GetItemName(item);
         
-
-    
         // TODO: Look into quest items and dungeon items (songs)
         // Tingle Map is given but doesn't display on other clients (unable to buy from tingle). Dungeon maps seem to work. 
         // Magic not given, I assume same with double magic and double defense. Might need to hook into z_bg_dy_yoseizo.c line:325ish
@@ -641,7 +638,7 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
                         gSaveContext.cycleSceneFlags[sceneId].switch0 |= (1 << (flag & 0x1F));
                     } else if ((flag & ~0x1F) >> 5 == 1) {
                         gSaveContext.cycleSceneFlags[sceneId].switch1 |= (1 << (flag & 0x1F));
-                    } // else switch2 and switch3 are persistant and not sent
+                    } // else switch2 and switch3 are not persistant and not sent
                 }
                 break;
             case FLAG_CYCL_SCENE_CLEARED_ROOM:
@@ -1197,6 +1194,10 @@ void Anchor_RegisterHooks() {
             GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
         });
     GameInteractor::Instance->RegisterGameHook<GameInteractor::OnFlagSet>([](FlagType flagType, uint32_t flag) {
+        if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) {
+            return;
+        }
+
         if (flagType == FLAG_WEEK_EVENT_REG && flag == WEEKEVENTREG_92_80) {
             return;
         }
@@ -1204,11 +1205,14 @@ void Anchor_RegisterHooks() {
         if (flagType == FLAG_WEEK_EVENT_REG && !WeekEventReg_Persistance(flag)) {
             return;
         }
-        // TODO: Check if any other flags are persistent/we want to send.
 
-        if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) {
+        // FLAG_EVENT_INF are cleared on cycle reset
+        if (flagType == FLAG_EVENT_INF) {
             return;
         }
+
+        // TODO: Check if any other flags are persistent/we want to send.
+
         nlohmann::json payload;
 
         payload["type"] = "SET_FLAG";
@@ -1240,6 +1244,10 @@ void Anchor_RegisterHooks() {
             GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
         });
     GameInteractor::Instance->RegisterGameHook<GameInteractor::OnFlagUnset>([](FlagType flagType, uint32_t flag) {
+        if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) {
+            return;
+        }
+
         if (flagType == FLAG_WEEK_EVENT_REG && flag == WEEKEVENTREG_92_80) {
             return;
         }
@@ -1248,9 +1256,11 @@ void Anchor_RegisterHooks() {
             return;
         }
 
-        if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) {
+        // FLAG_EVENT_INF are cleared on cycle reset
+        if (flagType == FLAG_EVENT_INF) {
             return;
         }
+
         nlohmann::json payload;
 
         // GameInteractor_ExecuteOnFlagUnset() only sends FLAG_WEEK_EVENT_REG and FLAG_EVENT_INF
