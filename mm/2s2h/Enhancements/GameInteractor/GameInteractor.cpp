@@ -130,6 +130,14 @@ void GameInteractor_ExecuteOnActorKill(Actor* actor) {
     GameInteractor::Instance->ExecuteHooksForFilter<GameInteractor::OnActorKill>(actor);
 }
 
+
+void GameInteractor_ExecuteOnValidPictoActor(Actor* actor) {
+    GameInteractor::Instance->ExecuteHooks<GameInteractor::OnValidPictoActor>(actor);
+    GameInteractor::Instance->ExecuteHooksForID<GameInteractor::OnValidPictoActor>(actor->id, actor);
+    GameInteractor::Instance->ExecuteHooksForPtr<GameInteractor::OnValidPictoActor>((uintptr_t)actor, actor);
+    GameInteractor::Instance->ExecuteHooksForFilter<GameInteractor::OnValidPictoActor>(actor);
+}
+
 void GameInteractor_ExecuteOnSceneFlagSet(s16 sceneId, FlagType flagType, u32 flag) {
     SPDLOG_DEBUG("OnSceneFlagSet: sceneId: {}, flagType: {}, flag: {}", sceneId, (u32)flagType, flag);
     GameInteractor::Instance->ExecuteHooks<GameInteractor::OnSceneFlagSet>(sceneId, flagType, flag);

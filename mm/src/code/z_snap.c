@@ -2,6 +2,8 @@
 #include "z64snap.h"
 #include "overlays/actors/ovl_En_Kakasi/z_en_kakasi.h"
 
+#include "2s2h/Enhancements/GameInteractor/GameInteractor.h"
+
 #define PICTO_SEEN_IN_SCENE 1
 #define PICTO_SEEN_ANYWHERE 2
 
@@ -82,8 +84,10 @@ s32 Snap_RecordPictographedActors(PlayState* play) {
             // If actor is recordable, run its validity function and record if valid
             pictoActor = (PictoActor*)actor;
             if (pictoActor->validationFunc != NULL) {
+                LUSLOG_DEBUG("Actor: %x", actor->id);
                 if (pictoActor->validationFunc(play, actor) == 0) {
                     validCount++;
+                    GameInteractor_ExecuteOnValidPictoActor(actor);
                 }
             }
         }

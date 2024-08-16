@@ -884,13 +884,13 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
         Anchor_FairyReward(rewardType);
         switch (rewardType) {
             case GI_MAGIC:
-                reward = "Magic";
+                reward = "Magic Upgrade";
                 break;
             case GI_DOUBLE_MAGIC:
-                reward = "Doubl Magic";
+                reward = "Double Magic Upgrade";
                 break;
             case GI_DOUBLE_DEFENSE:
-                reward = "Double Defense";
+                reward = "Double Defense Upgrade";
                 break;
         }
 
@@ -898,6 +898,15 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
                                 .prefix = reward,
                                 .message = "from",
                                 .suffix = anchorClient.name });
+    }
+    if (payload["type"] == "VALID_PICTO") {
+        AnchorClient anchorClient = GameInteractorAnchor::AnchorClients[payload["clientId"].get<uint32_t>()];
+        
+
+        Anchor_DisplayMessage({ // .itemIcon = (const char*)gItemIcons[item],
+                                .prefix = anchorClient.name,
+                                .message = "took a picture of",
+                                .suffix = payload["clientName"].get<std::string>() });
     }
 }
 
@@ -1377,6 +1386,28 @@ void Anchor_RegisterHooks() {
                 GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
             }
         }
+    });
+
+    GameInteractor::Instance->RegisterGameHookForID<GameInteractor::OnValidPictoActor>(ACTOR_EN_BEN, [](Actor* actor) {
+        if (!GameInteractor::Instance->isRemoteInteractorConnected || gPlayState == NULL ||
+            !GameInteractor::Instance->IsSaveLoaded()) {
+            return;
+        }
+        
+        uint32_t actorIndex = actor->params - 3;
+        const char* clientName = Anchor_GetClientName(actorIndex);
+        
+        
+
+        nlohmann::json payload;
+        
+
+        payload["type"] = "VALID_PICTO";
+        payload["clientName"] = clientName;
+
+        payload["quiet"] = false;
+
+        GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
     });
 }
 

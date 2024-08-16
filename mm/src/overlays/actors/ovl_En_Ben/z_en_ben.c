@@ -170,11 +170,11 @@ void Ben_UpdateDeath(Actor* thisx, PlayState* play) {
 }
 
 s32 Ben_ValidatePictograph(PlayState* play, Actor* thisx) {
-    s32 ret = Snap_ValidatePictograph(play, thisx, PICTO_VALID_PIRATE_GOOD, &thisx->focus.pos, &thisx->shape.rot, 10.0f,
-                                      400.0f, -1);
+    s32 ret = Snap_ValidatePictograph(play, thisx, PICTO_VALID_PIRATE_GOOD, &thisx->focus.pos, &thisx->shape.rot, 1.0f,
+                                      20000.0f, -1);
 
-    ret |= Snap_ValidatePictograph(play, thisx, PICTO_VALID_PIRATE_TOO_FAR, &thisx->focus.pos, &thisx->shape.rot, 10.0f,
-                                   1200.0f, -1);
+    // ret |= Snap_ValidatePictograph(play, thisx, PICTO_VALID_PIRATE_TOO_FAR, &thisx->focus.pos, &thisx->shape.rot, 10.0f,
+    //                                1200.0f, -1);
 
     return ret;
 }

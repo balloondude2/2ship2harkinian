@@ -315,6 +315,7 @@ class GameInteractor {
     DEFINE_HOOK(ShouldActorDraw, (Actor * actor, bool* should));
     DEFINE_HOOK(OnActorDraw, (Actor * actor));
     DEFINE_HOOK(OnActorKill, (Actor * actor));
+    DEFINE_HOOK(OnValidPictoActor, (Actor * actor));
 
     DEFINE_HOOK(OnSceneFlagSet, (s16 sceneId, FlagType flagType, u32 flag));
     DEFINE_HOOK(OnSceneFlagUnset, (s16 sceneId, FlagType flagType, u32 flag));
@@ -365,6 +366,7 @@ void GameInteractor_ExecuteOnActorUpdate(Actor* actor);
 bool GameInteractor_ShouldActorDraw(Actor* actor);
 void GameInteractor_ExecuteOnActorDraw(Actor* actor);
 void GameInteractor_ExecuteOnActorKill(Actor* actor);
+void GameInteractor_ExecuteOnValidPictoActor(Actor* actor);
 
 void GameInteractor_ExecuteOnSceneFlagSet(s16 sceneId, FlagType flagType, u32 flag);
 void GameInteractor_ExecuteOnSceneFlagUnset(s16 sceneId, FlagType flagType, u32 flag);
