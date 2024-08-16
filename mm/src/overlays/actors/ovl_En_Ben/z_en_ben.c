@@ -21,6 +21,8 @@ void Ben_Draw(Actor* thisx, PlayState* play2);
 void Ben_UpdateIdle(Actor* thisx, PlayState* play);
 void Ben_UpdateDeath(Actor* thisx, PlayState* play);
 
+s32 Ben_ValidatePictograph(PlayState* play, Actor* thisx);
+
 ActorInit En_Ben_InitVars = {
     /**/ ACTOR_EN_BEN,
     /**/ ACTORCAT_ITEMACTION,
@@ -66,16 +68,17 @@ static Gfx* sShellDLists[] = {
 void Ben_Init(Actor* thisx, PlayState* play) {
     Ben* this = THIS;
 
-    Actor_ProcessInitChain(&this->actor, sInitChain);
-    Collider_InitAndSetCylinder(play, &this->collider, &this->actor, &sCylinderInit);
+    Actor_ProcessInitChain(&this->picto.actor, sInitChain);
+    Collider_InitAndSetCylinder(play, &this->collider, &this->picto.actor, &sCylinderInit);
 
-    if (this->actor.params != BEN_PARAM_DEKU) {
-        this->actor.flags |= ACTOR_FLAG_CAN_PRESS_SWITCH;
-        if (this->actor.params == BEN_PARAM_GORON) {
-            this->actor.flags |= ACTOR_FLAG_CAN_PRESS_HEAVY_SWITCH;
+    if (this->picto.actor.params != BEN_PARAM_DEKU) {
+        this->picto.actor.flags |= ACTOR_FLAG_CAN_PRESS_SWITCH;
+        if (this->picto.actor.params == BEN_PARAM_GORON) {
+            this->picto.actor.flags |= ACTOR_FLAG_CAN_PRESS_HEAVY_SWITCH;
         }
     }
     this->framesUntilNextState = 0;
+    this->picto.validationFunc = Ben_ValidatePictograph;
 }
 
 void Ben_Destroy(Actor* thisx, PlayState* play) {
@@ -94,13 +97,13 @@ void Ben_Update(Actor* thisx, PlayState* play) {
     s32 pad[2];
 
     if (this->state == BEN_STATE_IDLE) {
-        this->actor.update = Ben_UpdateIdle;
+        this->picto.actor.update = Ben_UpdateIdle;
         return;
     }
 
-    this->actor.gravity = -1.0f;
-    Actor_MoveWithGravity(&this->actor);
-    Actor_UpdateBgCheckInfo(play, &this->actor, 30.0f, 20.0f, 70.0f, UPDBGCHECKINFO_FLAG_1 | UPDBGCHECKINFO_FLAG_4);
+    this->picto.actor.gravity = -1.0f;
+    Actor_MoveWithGravity(&this->picto.actor);
+    Actor_UpdateBgCheckInfo(play, &this->picto.actor, 30.0f, 20.0f, 70.0f, UPDBGCHECKINFO_FLAG_1 | UPDBGCHECKINFO_FLAG_4);
 
     if (this->framesUntilNextState == 0) {
         remainingFrames = 0;
@@ -112,34 +115,34 @@ void Ben_Update(Actor* thisx, PlayState* play) {
         if (this->state == BEN_STATE_INITIALIZED) {
             // Spawn in
             if (this->alpha == 0) {
-                Math_Vec3f_Copy(&this->actor.world.pos, &this->actor.home.pos);
-                this->actor.shape.rot.y = this->actor.home.rot.y;
+                Math_Vec3f_Copy(&this->picto.actor.world.pos, &this->picto.actor.home.pos);
+                this->picto.actor.shape.rot.y = this->picto.actor.home.rot.y;
                 this->state = BEN_STATE_FADING_IN;
             }
             targetAlpha = 0;
         } else if (this->state == BEN_STATE_FADING_IN) {
             // Stay semitransparent until the player moves away
-            if ((this->actor.xzDistToPlayer > 32.0f) || (fabsf(this->actor.playerHeightRel) > 70.0f)) {
+            if ((this->picto.actor.xzDistToPlayer > 32.0f) || (fabsf(this->picto.actor.playerHeightRel) > 70.0f)) {
                 this->state = BEN_STATE_SOLID;
             }
             targetAlpha = 60;
         } else {
             // Once the player has moved away, update collision and become opaque
-            Collider_UpdateCylinder(&this->actor, &this->collider);
+            Collider_UpdateCylinder(&this->picto.actor, &this->collider);
             CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
             targetAlpha = 255;
         }
         Math_StepToS(&this->alpha, targetAlpha, 8);
     }
 
-    if (Anchor_GetClientScene(this->actor.params - 3) == play->sceneId) {
-        PosRot playerPosRot = Anchor_GetClientPosition(this->actor.params - 3);
-        this->actor.world.pos = playerPosRot.pos;
-        this->actor.shape.rot = playerPosRot.rot;
+    if (Anchor_GetClientScene(this->picto.actor.params - 3) == play->sceneId) {
+        PosRot playerPosRot = Anchor_GetClientPosition(this->picto.actor.params - 3);
+        this->picto.actor.world.pos = playerPosRot.pos;
+        this->picto.actor.shape.rot = playerPosRot.rot;
     } else {
-        this->actor.world.pos.x = -9999.0f;
-        this->actor.world.pos.y = -9999.0f;
-        this->actor.world.pos.z = -9999.0f;
+        this->picto.actor.world.pos.x = -9999.0f;
+        this->picto.actor.world.pos.y = -9999.0f;
+        this->picto.actor.world.pos.z = -9999.0f;
     }
 }
 
@@ -148,8 +151,8 @@ void Ben_UpdateIdle(Actor* thisx, PlayState* play) {
 
     if (this->state == BEN_STATE_DYING) {
         // Start death animation
-        this->actor.update = Ben_UpdateDeath;
-        this->actor.velocity.y = 0.0f;
+        this->picto.actor.update = Ben_UpdateDeath;
+        this->picto.actor.velocity.y = 0.0f;
     }
 }
 
@@ -158,18 +161,28 @@ void Ben_UpdateDeath(Actor* thisx, PlayState* play) {
 
     // Fall down and become transparent, then delete once invisible
     if (Math_StepToS(&this->alpha, 0, 8)) {
-        Actor_Kill(&this->actor);
+        Actor_Kill(&this->picto.actor);
         return;
     }
 
-    this->actor.gravity = -1.0f;
-    Actor_MoveWithGravity(&this->actor);
+    this->picto.actor.gravity = -1.0f;
+    Actor_MoveWithGravity(&this->picto.actor);
+}
+
+s32 Ben_ValidatePictograph(PlayState* play, Actor* thisx) {
+    s32 ret = Snap_ValidatePictograph(play, thisx, PICTO_VALID_PIRATE_GOOD, &thisx->focus.pos, &thisx->shape.rot, 10.0f,
+                                      400.0f, -1);
+
+    ret |= Snap_ValidatePictograph(play, thisx, PICTO_VALID_PIRATE_TOO_FAR, &thisx->focus.pos, &thisx->shape.rot, 10.0f,
+                                   1200.0f, -1);
+
+    return ret;
 }
 
 void Ben_Draw(Actor* thisx, PlayState* play2) {
     PlayState* play = play2;
     Ben* this = THIS;
-    u8 form = Anchor_GetClientPlayerData(this->actor.params - 3).playerForm;
+    u8 form = Anchor_GetClientPlayerData(this->picto.actor.params - 3).playerForm;
     Gfx* gfx = sShellDLists[form];
 
     OPEN_DISPS(play->state.gfxCtx);

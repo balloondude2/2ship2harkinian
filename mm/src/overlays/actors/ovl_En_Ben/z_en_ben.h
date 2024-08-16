@@ -3,10 +3,12 @@
 
 #include "global.h"
 
+#include "z64snap.h"
+
 struct Ben;
 
 typedef struct Ben {
-    /* 0x000 */ Actor actor;
+    /* 0x000 */ PictoActor picto; //sizes are probably different
     /* 0x144 */ ColliderCylinder collider;
     /* 0x190 */ u8 state;
     /* 0x191 */ u8 framesUntilNextState;
