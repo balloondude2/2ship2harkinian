@@ -1223,11 +1223,11 @@ void Anchor_RegisterHooks() {
         // TODO: Small keys aren't persistant, neither are locks. So two clients can open the same small key
         // chest and end up with two keys for 1 lock. 
         // Possible solutions: 
-        // 1) Remove small key from other clients upon usage. Will require each player to get each small key on their own. Players could softlock each other.
+        // 1) Keep current logic.
         // 2) Don't send GIVE_ITEM for small keys. Will require each player to get each small key on their own.
-        // 3) Sync small keys and locks. Could be weird with some cycle resets maybe. Would require more complex logic on what flags to send
-        // 4) Keep current logic unless current scene matches client's scene, in which case one of the other solutions is used
-        // 5) Keep current logic. Probably not desirable.
+        // 3) Sync small keys and locks. Would probably require manually determing each small key and lock flag. (Would only work if all applicable switches are switch[0] or [1])
+        // 4) Remove small key from other clients upon usage. Will require each player to get each small key on their own. 
+        // Might need to adjust approach for randomizer when that gets developed.
 
         GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
     });
