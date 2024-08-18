@@ -596,7 +596,6 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
         
         // TODO: Look into quest items and dungeon items (songs)
         // Tingle Map is given but doesn't display on other clients (unable to buy from tingle). Dungeon maps seem to work. 
-        // Magic not given, I assume same with double magic and double defense. Might need to hook into z_bg_dy_yoseizo.c line:325ish
         Item_GiveImpl(gPlayState, item);
 
         if (item <= 0x82) {
@@ -1252,10 +1251,11 @@ void Anchor_RegisterHooks() {
             }
 
             // TODO: What flags do we send?
-            // Currently only sending persistant flags
-            if (!SceneFlag_Persistance(sceneNum, flagType, flag)) {
-                return;
-            }
+            // Currently only sending persistant flags, well not anymore
+            // If sending all scene flags, will need to separately handle small key count and stray fairy counts
+            // if (!SceneFlag_Persistance(sceneNum, flagType, flag)) {
+            //     return;
+            // }
 
             nlohmann::json payload;
 
