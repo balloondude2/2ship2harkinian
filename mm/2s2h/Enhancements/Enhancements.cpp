@@ -17,6 +17,7 @@ void InitEnhancements() {
 
     // Clock
     RegisterTextBasedClock();
+    Register3DSClock();
 
     // Cycle & Saving
     RegisterEndOfCycleSaveHooks();
@@ -28,6 +29,7 @@ void InitEnhancements() {
 
     // Equipment
     RegisterSkipMagicArrowEquip();
+    RegisterInstantRecall();
 
     // Graphics
     RegisterDisableBlackBars();
@@ -38,6 +40,7 @@ void InitEnhancements() {
     RegisterFierceDeityAnywhere();
     RegisterBlastMaskKeg();
     RegisterNoBlastMaskCooldown();
+    RegisterPersistentMasks();
 
     // Minigames
     RegisterAlwaysWinDoggyRace();
@@ -50,6 +53,7 @@ void InitEnhancements() {
     // Songs
     RegisterEnableSunsSong();
     RegisterPauseOwlWarp();
+    RegisterZoraEggCount();
 
     // Restorations
     RegisterPowerCrouchStab();
