@@ -6,7 +6,7 @@
 
 #include "z_en_ben.h"
 #include "objects/gameplay_keep/gameplay_keep.h"
-
+#include <libultraship/libultraship.h>
 #include "2s2h/Enhancements/GameInteractor/GameInteractor_Anchor.h"
 
 #define FLAGS (ACTOR_FLAG_10)
@@ -145,6 +145,15 @@ void Ben_Update(Actor* thisx, PlayState* play) {
         this->picto.actor.world.pos.y = -9999.0f;
         this->picto.actor.world.pos.z = -9999.0f;
     }
+
+    Player* player = GET_PLAYER(play);
+
+    if (!Play_InCsMode(play) && (this->picto.actor.xzDistToPlayer < 40.0f) &&
+        (fabsf(player->actor.world.pos.y - this->picto.actor.world.pos.y) < 50.0f) && (play->msgCtx.msgLength == 0)) {
+        
+        LUSLOG_DEBUG("Tagged: %s", Anchor_GetClientName(this->picto.actor.params - 3));
+    }
+
 }
 
 void Ben_UpdateIdle(Actor* thisx, PlayState* play) {
