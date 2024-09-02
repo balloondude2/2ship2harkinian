@@ -141,7 +141,6 @@ void GameInteractor_ExecuteOnActorKill(Actor* actor) {
     GameInteractor::Instance->ExecuteHooksForFilter<GameInteractor::OnActorKill>(actor);
 }
 
-
 void GameInteractor_ExecuteOnValidPictoActor(Actor* actor) {
     GameInteractor::Instance->ExecuteHooks<GameInteractor::OnValidPictoActor>(actor);
     GameInteractor::Instance->ExecuteHooksForID<GameInteractor::OnValidPictoActor>(actor->id, actor);

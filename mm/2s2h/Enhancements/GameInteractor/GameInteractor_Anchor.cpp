@@ -317,7 +317,8 @@ std::vector<std::string> itemNames = {
     /* 0xED */ "ITEM_ED",
     /* 0xEE */ "ITEM_EE",
     /* 0xEF */ "ITEM_EF",
-    /* 0xF0 */ "ITEM_F0"  // PLAYER_MASK_BLAST"
+    /* 0xF0 */
+    "ITEM_F0"             // PLAYER_MASK_BLAST"
     /* 0xF1 */ "ITEM_F1", // PLAYER_MASK_BREMEN"
     /* 0xF2 */ "ITEM_F2", // PLAYER_MASK_KAMARO"
     /* 0xF3 */ "ITEM_F3",
@@ -593,23 +594,23 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
         AnchorClient anchorClient = GameInteractorAnchor::AnchorClients[payload["clientId"].get<uint32_t>()];
         int16_t item = payload["getItemId"].get<int16_t>();
         std::string itemString = GetItemName(item);
-        
+
         // TODO: Look into quest items and dungeon items (songs)
-        // Tingle Map is given but doesn't display on other clients (unable to buy from tingle). Dungeon maps seem to work. 
+        // Tingle Map is given but doesn't display on other clients (unable to buy from tingle). Dungeon maps seem to
+        // work.
         Item_GiveImpl(gPlayState, item);
 
         if (item <= 0x82) {
             Anchor_DisplayMessage({ .itemIcon = (const char*)gItemIcons[item],
-                                .prefix = itemString,
-                                .message = "from",
-                                .suffix = anchorClient.name });
+                                    .prefix = itemString,
+                                    .message = "from",
+                                    .suffix = anchorClient.name });
         } else {
             Anchor_DisplayMessage({ // .itemIcon = (const char*)gItemIcons[item],
-                                .prefix = itemString,
-                                .message = "from",
-                                .suffix = anchorClient.name });
+                                    .prefix = itemString,
+                                    .message = "from",
+                                    .suffix = anchorClient.name });
         }
-
     }
 
     if (payload["type"] == "SET_SCENE_FLAG") {
@@ -651,8 +652,9 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
             case FLAG_CYCL_SCENE_COLLECTIBLE:
                 if (gPlayState->sceneId == sceneId) {
                     gPlayState->actorCtx.sceneFlags.collectible[(flag & ~0x1F) >> 5] |= 1 << (flag & 0x1F);
-                    
-                    // TODO: Are there any other actor categories/ids to check and kill? Is there a better way to do this?
+
+                    // TODO: Are there any other actor categories/ids to check and kill? Is there a better way to do
+                    // this?
                     //  Check Boss remains
                     Actor* actor = gPlayState->actorCtx.actorLists[ACTORCAT_MISC].first;
                     while (actor != NULL) {
@@ -672,14 +674,12 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
             default:
                 break;
         }
-        
+
         std::string s1 = std::to_string(sceneId);
         std::string s2 = std::to_string(flagType);
         std::string s3 = std::to_string(flag);
 
-        Anchor_DisplayMessage({ .prefix = "set scene flag",
-                                .message = s2,
-                                .suffix = s3 });
+        Anchor_DisplayMessage({ .prefix = "set scene flag", .message = s2, .suffix = s3 });
     }
     if (payload["type"] == "SET_FLAG") {
         u32 flagType = payload["flagType"].get<uint32_t>();
@@ -701,9 +701,7 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
         std::string s2 = std::to_string(flagType);
         std::string s3 = std::to_string(flag);
 
-        Anchor_DisplayMessage({ .prefix = "set flag",
-                                .message = s2,
-                                .suffix = s3 });
+        Anchor_DisplayMessage({ .prefix = "set flag", .message = s2, .suffix = s3 });
     }
     if (payload["type"] == "UNSET_SCENE_FLAG") {
 
@@ -716,7 +714,7 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
         switch (flagType) {
             case FLAG_CYCL_SCENE_SWITCH:
                 if (gPlayState->sceneId == sceneId) {
-                     gPlayState->actorCtx.sceneFlags.switches[(flag & ~0x1F) >> 5] &= ~(1 << (flag & 0x1F));
+                    gPlayState->actorCtx.sceneFlags.switches[(flag & ~0x1F) >> 5] &= ~(1 << (flag & 0x1F));
                 } else {
                     if ((flag & ~0x1F) >> 5 == 0) {
                         gSaveContext.cycleSceneFlags[sceneId].switch0 &= ~(1 << (flag & 0x1F));
@@ -736,14 +734,12 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
             default:
                 break;
         }
-        
+
         std::string s1 = std::to_string(sceneId);
         std::string s2 = std::to_string(flagType);
         std::string s3 = std::to_string(flag);
 
-        Anchor_DisplayMessage({ .prefix = "unset scene flag",
-                                .message = s2,
-                                .suffix = s3 });
+        Anchor_DisplayMessage({ .prefix = "unset scene flag", .message = s2, .suffix = s3 });
     }
     if (payload["type"] == "UNSET_FLAG") {
         u32 flagType = payload["flagType"].get<uint32_t>();
@@ -765,9 +761,7 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
         std::string s2 = std::to_string(flagType);
         std::string s3 = std::to_string(flag);
 
-        Anchor_DisplayMessage({ .prefix = "unset flag",
-                                .message = s2,
-                                .suffix = s3 });
+        Anchor_DisplayMessage({ .prefix = "unset flag", .message = s2, .suffix = s3 });
     }
 
     if (payload["type"] == "CLIENT_UPDATE") {
@@ -900,7 +894,6 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
     }
     if (payload["type"] == "VALID_PICTO") {
         AnchorClient anchorClient = GameInteractorAnchor::AnchorClients[payload["clientId"].get<uint32_t>()];
-        
 
         Anchor_DisplayMessage({ // .itemIcon = (const char*)gItemIcons[item],
                                 .prefix = anchorClient.name,
@@ -917,7 +910,7 @@ void Anchor_PushSaveStateToRemote() {
     payload["cycleSceneFlags"] = gSaveContext.cycleSceneFlags;
 
     // TODO: Probably need to account for inverted stone tower. See Play_SaveCycleSceneFlags() in z_play.c. Here and
-    // other places 
+    // other places
     // manually update current scene flags
     payload["cycleSceneFlags"][gPlayState->sceneId]["chest"] = gPlayState->actorCtx.sceneFlags.chest;
     payload["cycleSceneFlags"][gPlayState->sceneId]["switch0"] = gPlayState->actorCtx.sceneFlags.switches[0];
@@ -938,7 +931,8 @@ void Anchor_RequestSaveStateFromRemote() {
 void Anchor_ParseSaveStateFromRemote(nlohmann::json payload) {
     SaveContext loadedData = payload.get<SaveContext>();
 
-    // TODO: Decide what else to sync. Owls, threeDayResetCount, firstCycle, rupees, skulltulas, stolen items, regionsVisited, worldMapCloudVisiblity, etc?
+    // TODO: Decide what else to sync. Owls, threeDayResetCount, firstCycle, rupees, skulltulas, stolen items,
+    // regionsVisited, worldMapCloudVisiblity, etc?
 
     // from_json for SaveContext doesn't have CycleSceneFlags, so manually parse them
     CycleSceneFlags sceneFlags[120];
@@ -973,9 +967,6 @@ void Anchor_ParseSaveStateFromRemote(nlohmann::json payload) {
         loadedData.save.saveInfo.equips.buttonItems[PLAYER_FORM_DEKU][EQUIP_SLOT_B];
 
     gSaveContext.save.saveInfo.playerData.doubleDefense = loadedData.save.saveInfo.playerData.doubleDefense;
-    // gSaveContext.bgsFlag = loadedData.bgsFlag;
-    // // TODO: Packet to live update this
-    // gSaveContext.adultTradeItems = loadedData.adultTradeItems;
 
     // TODO: I doubt this is right; I think this is better now, but could still use work probs. now on v3
     for (int i = 0; i < SCENE_MAX; i++) {
@@ -1211,30 +1202,23 @@ void Anchor_RegisterHooks() {
 
     GameInteractor::Instance->RegisterGameHook<GameInteractor::OnItemGive>([](u8 item) {
         if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) {
-                return;
-            }
+            return;
+        }
 
         nlohmann::json payload;
 
         payload["type"] = "GIVE_ITEM";
         payload["getItemId"] = item;
 
-        // TODO: Small keys aren't persistant, neither are locks. So two clients can open the same small key
-        // chest and end up with two keys for 1 lock. 
-        // Possible solutions: 
-        // 1) Keep current logic.
-        // 2) Don't send GIVE_ITEM for small keys. Will require each player to get each small key on their own.
-        // 3) Sync small keys and locks. Would probably require manually determing each small key and lock flag. (Would only work if all applicable switches are switch[0] or [1])
-        // 4) Remove small key from other clients upon usage. Will require each player to get each small key on their own. 
-        // Might need to adjust approach for randomizer when that gets developed.
+        // TODO: sync small keys
 
         GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
     });
 
     GameInteractor::Instance->RegisterGameHook<GameInteractor::OnGreatFairyReward>([](GIFairyRewardType reward) {
         if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) {
-                return;
-            }
+            return;
+        }
 
         nlohmann::json payload;
 
@@ -1307,7 +1291,8 @@ void Anchor_RegisterHooks() {
             }
             nlohmann::json payload;
 
-            // GameInteractor_ExecuteOnSceneFlagUnset() only sends FLAG_CYCL_SCENE_SWITCH and FLAG_CYCL_SCENE_CLEARED_ROOM
+            // GameInteractor_ExecuteOnSceneFlagUnset() only sends FLAG_CYCL_SCENE_SWITCH and
+            // FLAG_CYCL_SCENE_CLEARED_ROOM
 
             payload["type"] = "UNSET_SCENE_FLAG";
             payload["sceneNum"] = sceneNum;
@@ -1393,14 +1378,11 @@ void Anchor_RegisterHooks() {
             !GameInteractor::Instance->IsSaveLoaded()) {
             return;
         }
-        
+
         uint32_t actorIndex = actor->params - 3;
         const char* clientName = Anchor_GetClientName(actorIndex);
-        
-        
 
         nlohmann::json payload;
-        
 
         payload["type"] = "VALID_PICTO";
         payload["clientName"] = clientName;

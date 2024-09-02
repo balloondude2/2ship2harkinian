@@ -103,7 +103,8 @@ void Ben_Update(Actor* thisx, PlayState* play) {
 
     this->picto.actor.gravity = -1.0f;
     Actor_MoveWithGravity(&this->picto.actor);
-    Actor_UpdateBgCheckInfo(play, &this->picto.actor, 30.0f, 20.0f, 70.0f, UPDBGCHECKINFO_FLAG_1 | UPDBGCHECKINFO_FLAG_4);
+    Actor_UpdateBgCheckInfo(play, &this->picto.actor, 30.0f, 20.0f, 70.0f,
+                            UPDBGCHECKINFO_FLAG_1 | UPDBGCHECKINFO_FLAG_4);
 
     if (this->framesUntilNextState == 0) {
         remainingFrames = 0;
@@ -173,7 +174,8 @@ s32 Ben_ValidatePictograph(PlayState* play, Actor* thisx) {
     s32 ret = Snap_ValidatePictograph(play, thisx, PICTO_VALID_PIRATE_GOOD, &thisx->focus.pos, &thisx->shape.rot, 1.0f,
                                       20000.0f, -1);
 
-    // ret |= Snap_ValidatePictograph(play, thisx, PICTO_VALID_PIRATE_TOO_FAR, &thisx->focus.pos, &thisx->shape.rot, 10.0f,
+    // ret |= Snap_ValidatePictograph(play, thisx, PICTO_VALID_PIRATE_TOO_FAR, &thisx->focus.pos,
+    // &thisx->shape.rot, 10.0f,
     //                                1200.0f, -1);
 
     return ret;
