@@ -140,19 +140,23 @@ void Ben_Update(Actor* thisx, PlayState* play) {
         PosRot playerPosRot = Anchor_GetClientPosition(this->picto.actor.params - 3);
         this->picto.actor.world.pos = playerPosRot.pos;
         this->picto.actor.shape.rot = playerPosRot.rot;
+
+        if (Anchor_GetOwnTagRole() == 0x0 && Anchor_GetClientTagRole(this->picto.actor.params - 3) == 0x1) {
+            Player* player = GET_PLAYER(play);
+
+            if (player->actor.freezeTimer == 0 && !Play_InCsMode(play) && (this->picto.actor.xzDistToPlayer < 40.0f) &&
+                (fabsf(player->actor.world.pos.y - this->picto.actor.world.pos.y) < 50.0f) && (play->msgCtx.msgLength == 0)) {
+                Anchor_HandleTag(this->picto.actor.params - 3);
+            }
+        }
+
     } else {
         this->picto.actor.world.pos.x = -9999.0f;
         this->picto.actor.world.pos.y = -9999.0f;
         this->picto.actor.world.pos.z = -9999.0f;
     }
 
-    Player* player = GET_PLAYER(play);
-
-    if (!Play_InCsMode(play) && (this->picto.actor.xzDistToPlayer < 40.0f) &&
-        (fabsf(player->actor.world.pos.y - this->picto.actor.world.pos.y) < 50.0f) && (play->msgCtx.msgLength == 0)) {
-        
-        LUSLOG_DEBUG("Tagged: %s", Anchor_GetClientName(this->picto.actor.params - 3));
-    }
+    
 
 }
 

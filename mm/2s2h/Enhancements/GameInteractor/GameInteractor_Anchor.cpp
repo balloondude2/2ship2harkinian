@@ -54,6 +54,7 @@ void from_json(const json& j, AnchorClient& client) {
     j.contains("entranceIndex") ? j.at("entranceIndex").get_to(client.entranceIndex) : client.entranceIndex = 0;
     j.contains("posRot") ? j.at("posRot").get_to(client.posRot) : client.posRot = { -9999, -9999, -9999, 0, 0, 0 };
     j.contains("playerData") ? j.at("playerData").get_to(client.playerData) : client.playerData = { 0 };
+    j.contains("role") ? j.at("role").get_to(client.role) : client.role = RUNNER;
 }
 
 void to_json(json& j, const CycleSceneFlags& flags) {
@@ -467,6 +468,7 @@ std::string GameInteractorAnchor::clientVersion = "MM Anchor + Statues Alpha";
 std::vector<std::pair<uint16_t, int16_t>> receivedItems = {};
 std::vector<AnchorMessage> anchorMessages = {};
 uint32_t notificationId = 0;
+TagRole GameInteractorAnchor::anchorRole = RUNNER;
 
 void Anchor_DisplayMessage(AnchorMessage message = {}) {
     message.id = notificationId++;
@@ -478,6 +480,7 @@ void Anchor_SendClientData() {
     payload["data"]["name"] = CVarGetString("gRemote.AnchorName", "");
     payload["data"]["color"] = CVarGetColor24("gRemote.AnchorColor", { 100, 255, 100 });
     payload["data"]["clientVersion"] = GameInteractorAnchor::clientVersion;
+    payload["data"]["role"] = GameInteractorAnchor::anchorRole;
     payload["type"] = "UPDATE_CLIENT_DATA";
 
     // TODO: Doesn't crash when Anchor is enabled at start, but needs reconnect to work. Maybe call this function again
@@ -777,6 +780,9 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
             if (payload.contains("playerData")) {
                 GameInteractorAnchor::AnchorClients[clientId].playerData = payload["playerData"].get<PlayerData>();
             }
+            GameInteractorAnchor::AnchorClients[clientId].role = payload["role"].get<TagRole>();
+            
+            //LUSLOG_DEBUG("CLient update role: %x", GameInteractorAnchor::AnchorClients[clientId].role);
         }
     }
     if (payload["type"] == "PUSH_SAVE_STATE" && GameInteractor::IsSaveLoaded()) {
@@ -804,6 +810,7 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
                     client.entranceIndex,
                     { -9999, -9999, -9999, 0, 0, 0 },
                     { 0 },
+                    RUNNER,
                 };
                 Anchor_DisplayMessage(
                     { .prefix = client.name, .prefixColor = ImVec4(1.0f, 0.5f, 0.5f, 1.0f), .message = "connected" });
@@ -840,6 +847,7 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
             GameInteractorAnchor::AnchorClients[clientId].gameComplete = client.gameComplete;
             GameInteractorAnchor::AnchorClients[clientId].sceneNum = client.sceneNum;
             GameInteractorAnchor::AnchorClients[clientId].entranceIndex = client.entranceIndex;
+            GameInteractorAnchor::AnchorClients[clientId].role = client.role;
         }
     }
 
@@ -900,9 +908,26 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
                                 .message = "took a picture of",
                                 .suffix = payload["clientName"].get<std::string>() });
     }
+    if (payload["type"] == "TAG_NOTICE") {
+        AnchorClient anchorClient = GameInteractorAnchor::AnchorClients[payload["clientId"].get<uint32_t>()];
+
+        Anchor_DisplayMessage({ // .itemIcon = (const char*)gItemIcons[item],
+                                .prefix = anchorClient.name,
+                                .message = "tagged",
+                                .suffix = payload["clientName"].get<std::string>() });
+    }
+    if (payload["type"] == "TAGGED") {
+        //AnchorClient anchorClient = GameInteractorAnchor::AnchorClients[payload["clientId"].get<uint32_t>()];
+        GET_PLAYER(gPlayState)->actor.freezeTimer = 100;
+        Actor_SetColorFilter(&GET_PLAYER(gPlayState)->actor, 0, 0xFF, 0, 10);
+        GameInteractorAnchor::anchorRole = TAGGER;
+
+    }
 }
 
 void Anchor_PushSaveStateToRemote() {
+    GameInteractorAnchor::anchorRole = TAGGER;
+    LUSLOG_DEBUG("role: %x", GameInteractorAnchor::anchorRole);
     // TODO: This sends way more data than needed. Particularly pictoPhoto
     nlohmann::json payload = gSaveContext;
     payload["type"] = "PUSH_SAVE_STATE";
@@ -1109,6 +1134,43 @@ Color_RGB8 Anchor_GetClientColor(uint32_t actorIndex) {
         return { 100, 255, 100 };
 
     return client->color;
+}
+
+uint8_t Anchor_GetClientTagRole(uint32_t actorIndex) {
+    AnchorClient* client = Anchor_GetClientByActorIndex(actorIndex);
+    if (client == nullptr)
+        return { RUNNER };
+
+    return client->role;
+}
+
+uint8_t Anchor_GetOwnTagRole() {
+    return GameInteractorAnchor::anchorRole;
+}
+
+void Anchor_HandleTag(uint32_t actorIndex) {
+    GameInteractorAnchor::anchorRole = RUNNER;
+
+    if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) {
+            return;
+    }
+
+    nlohmann::json payload;
+
+    payload["type"] = "TAG_NOTICE";
+    payload["clientName"] = Anchor_GetClientName(actorIndex);
+
+    GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
+
+    uint32_t clientId = GameInteractorAnchor::ActorIndexToClientId[actorIndex];
+    nlohmann::json payload2;
+    payload2["type"] = "TAGGED";
+    payload["targetClientId"] = clientId;
+
+    
+    GameInteractorAnchor::Instance->TransmitJsonToRemote(payload2);
+
+
 }
 
 void Anchor_RefreshClientActors() {
@@ -1353,6 +1415,8 @@ void Anchor_RegisterHooks() {
         current.playerForm = player->transformation;
 
         payload["playerData"] = current;
+        payload["role"] = GameInteractorAnchor::anchorRole;
+        //LUSLOG_DEBUG("Actor udpate hook role: %x", GameInteractorAnchor::anchorRole);
 
         payload["type"] = "CLIENT_UPDATE";
         payload["sceneNum"] = gPlayState->sceneId;
@@ -1438,6 +1502,10 @@ void AnchorPlayerLocationWindow::DrawElement() {
                      ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar);
 
     ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "%s", CVarGetString("gRemote.AnchorName", ""));
+    
+    ImGui::SameLine();
+    ImGui::TextColored(ImVec4(0.5, 0.5, 0.5, 1), "%x", Anchor_GetOwnTagRole());
+    
     if (gPlayState != NULL) {
         ImGui::SameLine();
         ImGui::TextColored(ImVec4(0.5, 0.5, 0.5, 1), "%s", GetSceneName(gPlayState->sceneId).c_str());
@@ -1445,6 +1513,10 @@ void AnchorPlayerLocationWindow::DrawElement() {
     for (auto& [clientId, client] : GameInteractorAnchor::AnchorClients) {
         ImGui::PushID(clientId);
         ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "%s", client.name.c_str());
+
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(0.5, 0.5, 0.5, 1), "%x", client.role);
+
         if (client.sceneNum < SCENE_MAX) {
             ImGui::SameLine();
             ImGui::TextColored(ImVec4(0.5, 0.5, 0.5, 1), "%s", GetSceneName(client.sceneNum).c_str());

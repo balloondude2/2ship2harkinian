@@ -7,6 +7,12 @@
 #include "./GameInteractor.h"
 #include "./Anchor_Windows.h"
 
+typedef enum {
+/*0x0*/  TAGGER,
+/*0x1*/  RUNNER,
+/*0x2*/  TAGGED,
+} TagRole;
+
 typedef struct {
     uint32_t clientId;
     std::string clientVersion;
@@ -20,6 +26,7 @@ typedef struct {
     uint32_t entranceIndex;
     PosRot posRot;
     PlayerData playerData;
+    TagRole role;
 } AnchorClient;
 
 class GameInteractorAnchor {
@@ -33,6 +40,7 @@ class GameInteractorAnchor {
     static std::map<uint32_t, AnchorClient> AnchorClients;
     static std::vector<uint32_t> ActorIndexToClientId;
     static std::string clientVersion;
+    static TagRole anchorRole;
 
     void Enable();
     void Disable();
@@ -68,11 +76,14 @@ uint8_t Anchor_GetClientRoomIndex(uint32_t actorIndex);
 Vec3s* Anchor_GetClientJointTable(uint32_t actorIndex);
 PlayerData Anchor_GetClientPlayerData(uint32_t actorIndex);
 Color_RGB8 Anchor_GetClientColor(uint32_t actorIndex);
+uint8_t Anchor_GetClientTagRole(uint32_t actorIndex);
+uint8_t Anchor_GetOwnTagRole();
 void Anchor_RefreshClientActors();
 void Anchor_SendClientActors();
 void Anchor_RequestTeleport(uint32_t clientId);
 void Anchor_TeleportToPlayer(uint32_t clientId);
 void Anchor_FairyReward(uint32_t reward);
+void Anchor_HandleTag(uint32_t actorIndex);
 
 #ifdef __cplusplus
 }
