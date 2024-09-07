@@ -84,6 +84,7 @@ void Anchor_RequestTeleport(uint32_t clientId);
 void Anchor_TeleportToPlayer(uint32_t clientId);
 void Anchor_FairyReward(uint32_t reward);
 void Anchor_HandleTag(uint32_t actorIndex);
+void Anchor_HandleTagStun(uint32_t actorIndex);
 
 #ifdef __cplusplus
 }

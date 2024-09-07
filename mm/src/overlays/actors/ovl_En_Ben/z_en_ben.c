@@ -144,9 +144,17 @@ void Ben_Update(Actor* thisx, PlayState* play) {
         if (Anchor_GetOwnTagRole() == 0x0 && Anchor_GetClientTagRole(this->picto.actor.params - 3) == 0x1) {
             Player* player = GET_PLAYER(play);
 
+            if (this->collider.base.acFlags & AC_HIT) {
+                this->collider.base.acFlags &= ~AC_HIT;
+                Anchor_HandleTagStun(this->picto.actor.params - 3);
+                Actor_SetColorFilter(&this->picto.actor, 0x8000, 0xFF, 0, 10);
+            }
+
             if (player->actor.freezeTimer == 0 && !Play_InCsMode(play) && (this->picto.actor.xzDistToPlayer < 40.0f) &&
                 (fabsf(player->actor.world.pos.y - this->picto.actor.world.pos.y) < 50.0f) && (play->msgCtx.msgLength == 0)) {
                 Anchor_HandleTag(this->picto.actor.params - 3);
+                
+                Actor_SetColorFilter(&this->picto.actor, 0, 0xFF, 0, 100);
             }
         }
 
@@ -156,6 +164,8 @@ void Ben_Update(Actor* thisx, PlayState* play) {
         this->picto.actor.world.pos.z = -9999.0f;
     }
 
+    Collider_UpdateCylinder(&this->picto.actor, &this->collider);
+    CollisionCheck_SetAC(play, &play->colChkCtx, &this->collider.base);
     
 
 }

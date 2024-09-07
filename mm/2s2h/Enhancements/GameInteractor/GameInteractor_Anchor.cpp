@@ -921,7 +921,10 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
         GET_PLAYER(gPlayState)->actor.freezeTimer = 100;
         Actor_SetColorFilter(&GET_PLAYER(gPlayState)->actor, 0, 0xFF, 0, 10);
         GameInteractorAnchor::anchorRole = TAGGER;
-
+    }
+    if (payload["type"] == "TAG_STUN") {
+        GET_PLAYER(gPlayState)->actor.freezeTimer = 20;
+        Actor_SetColorFilter(&GET_PLAYER(gPlayState)->actor, 0x8000, 0xFF, 0, 10);
     }
 }
 
@@ -1165,12 +1168,22 @@ void Anchor_HandleTag(uint32_t actorIndex) {
     uint32_t clientId = GameInteractorAnchor::ActorIndexToClientId[actorIndex];
     nlohmann::json payload2;
     payload2["type"] = "TAGGED";
-    payload["targetClientId"] = clientId;
-
+    payload2["targetClientId"] = clientId;
     
     GameInteractorAnchor::Instance->TransmitJsonToRemote(payload2);
+}
 
+void Anchor_HandleTagStun(uint32_t actorIndex) {
+    if (!GameInteractor::Instance->isRemoteInteractorConnected || !GameInteractor::Instance->IsSaveLoaded()) {
+            return;
+    }
 
+    nlohmann::json payload;
+    uint32_t clientId = GameInteractorAnchor::ActorIndexToClientId[actorIndex];
+    payload["type"] = "TAG_STUN";
+    payload["targetClientId"] = clientId;
+    
+    GameInteractorAnchor::Instance->TransmitJsonToRemote(payload);
 }
 
 void Anchor_RefreshClientActors() {
