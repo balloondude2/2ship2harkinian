@@ -530,6 +530,10 @@ void DrawEnhancementsMenu() {
                                     { .tooltip = "Fixes a missing gDPSetEnvColor, which causes the ammo count to be "
                                                  "the wrong color prior to obtaining magic or other conditions." });
 
+            UIWidgets::CVarCheckbox("Fix Fierce Deity Z-Target movement",
+                                    "gEnhancements.Fixes.FierceDeityZTargetMovement",
+                                    { .tooltip = "Fixes Fierce Deity movement being choppy when Z-targeting" });
+
             UIWidgets::CVarCheckbox("Fix Hess and Weirdshot Crash", "gEnhancements.Fixes.HessCrash",
                                     { .tooltip = "Fixes a crash that can occur when performing a HESS or Weirdshot.",
                                       .defaultValue = true });
@@ -652,6 +656,14 @@ void DrawEnhancementsMenu() {
                                     { .tooltip = "Restores side rolling from OOT." });
             UIWidgets::CVarCheckbox("Tatl ISG", "gEnhancements.Restorations.TatlISG",
                                     { .tooltip = "Restores Navi ISG from OOT, but now with Tatl." });
+
+            if (UIWidgets::CVarCheckbox(
+                    "Woodfall Mountain Appearance", "gEnhancements.Restorations.WoodfallMountainAppearance",
+                    { .tooltip = "Restores the appearance of Woodfall mountain to not look poisoned "
+                                 "when viewed from Termina Field after clearing Woodfall Temple\n\n"
+                                 "Requires a scene reload to take effect" })) {
+                RegisterWoodfallMountainAppearance();
+            }
 
             ImGui::EndMenu();
         }
