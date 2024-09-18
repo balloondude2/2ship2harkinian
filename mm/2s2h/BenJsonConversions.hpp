@@ -370,6 +370,22 @@ inline void to_json(json& j, const Color_RGB8& color) {
     };
 }
 
+inline void from_json(const json& j, Color_RGBA8& color) {
+    j.at("r").get_to(color.r);
+    j.at("g").get_to(color.g);
+    j.at("b").get_to(color.b);
+    j.at("a").get_to(color.a);
+}
+
+inline void to_json(json& j, const Color_RGBA8& color) {
+    j = json{
+        {"r", color.r},
+        {"g", color.g},
+        {"b", color.b},
+        {"a", color.a}
+    };
+}
+
 inline void to_json(json& j, const Vec3f& vec) {
     j = json{ { "x", vec.x }, { "y", vec.y }, { "z", vec.z } };
 }
