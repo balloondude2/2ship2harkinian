@@ -77,6 +77,14 @@ void from_json(const json& j, CycleSceneFlags& flags) {
     j.at("collectible").get_to(flags.collectible);
 }
 
+std::vector<int16_t> yOffsets = {
+    50, // fd/human
+    60, // goron
+    50, // zoro
+    30, // deku
+    40, // human
+};
+
 std::vector<std::string> itemNames = {
     /* 0x00 */ "ITEM_OCARINA_OF_TIME",
     /* 0x01 */ "ITEM_BOW",
@@ -778,6 +786,20 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
                 payload.contains("entranceIndex") ? payload.at("entranceIndex").get<int16_t>() : 0;
             GameInteractorAnchor::AnchorClients[clientId].posRot = payload["posRot"].get<PosRot>();
             if (payload.contains("playerData")) {
+                if (GameInteractorAnchor::AnchorClients[clientId].playerData.playerForm != payload["playerData"].get<PlayerData>().playerForm) {
+                    Actor* actor = gPlayState->actorCtx.actorLists[ACTORCAT_ITEMACTION].first;
+                    while (actor != NULL) {
+                        if (actor->id == gEnLinkPuppetId) {
+                            if (clientId == GameInteractorAnchor::ActorIndexToClientId[actor->params - 3]) {
+                                NameTag_RemoveAllForActor(actor);
+                                u8 form = payload["playerData"].get<PlayerData>().playerForm;
+                                NameTagOptions options = {ANCHOR_ACTOR_NAMETAG_TAG, yOffsets[form], Anchor_GetClientColor(actor->params - 3), 0};
+                                NameTag_RegisterForActorWithOptions(actor, Anchor_GetClientName(actor->params - 3), options);
+                            }
+                        }
+                        actor = actor->next;
+                    }
+                }
                 GameInteractorAnchor::AnchorClients[clientId].playerData = payload["playerData"].get<PlayerData>();
             }
         }
@@ -843,6 +865,22 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
             GameInteractorAnchor::AnchorClients[clientId].gameComplete = client.gameComplete;
             GameInteractorAnchor::AnchorClients[clientId].sceneNum = client.sceneNum;
             GameInteractorAnchor::AnchorClients[clientId].entranceIndex = client.entranceIndex;
+
+            // TODO: This seems very janky.
+            if (client.sceneNum == gPlayState->sceneId) {
+                Actor* actor = gPlayState->actorCtx.actorLists[ACTORCAT_ITEMACTION].first;
+                while (actor != NULL) {
+                    if (actor->id == gEnLinkPuppetId) {
+                        if (clientId == GameInteractorAnchor::ActorIndexToClientId[actor->params - 3]) {
+                            NameTag_RemoveAllForActor(actor);
+                            u8 form = Anchor_GetClientPlayerData(actor->params - 3).playerForm;
+                            NameTagOptions options = {ANCHOR_ACTOR_NAMETAG_TAG, yOffsets[form], client.color, 0};
+                            NameTag_RegisterForActorWithOptions(actor, client.name.c_str(), options);
+                        }
+                    }
+                    actor = actor->next;
+                }
+            }            
         }
     }
 
@@ -1135,7 +1173,8 @@ void Anchor_RefreshClientActors() {
                         client.posRot.pos.z, client.posRot.rot.x, client.posRot.rot.y, client.posRot.rot.z, 3 + i);
         // Todo: This was removed in player models branch
         // TODO: yOffset needs to change per form. 50 seems good for zora.
-        NameTagOptions options = {ANCHOR_ACTOR_NAMETAG_TAG, 50, client.color, 0};
+        u8 form = Anchor_GetClientPlayerData(fairy->params - 3).playerForm;
+        NameTagOptions options = {ANCHOR_ACTOR_NAMETAG_TAG, yOffsets[form], client.color, 0};
         NameTag_RegisterForActorWithOptions(fairy, client.name.c_str(), options);
         i++;
     }
