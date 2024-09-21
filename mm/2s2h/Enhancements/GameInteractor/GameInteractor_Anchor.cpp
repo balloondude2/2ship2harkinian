@@ -82,7 +82,7 @@ std::vector<int16_t> yOffsets = {
     60, // goron
     50, // zoro
     30, // deku
-    40, // human
+    30, // human
 };
 
 std::vector<std::string> itemNames = {
