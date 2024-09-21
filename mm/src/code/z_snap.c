@@ -2,6 +2,8 @@
 #include "z64snap.h"
 #include "overlays/actors/ovl_En_Kakasi/z_en_kakasi.h"
 
+#include "2s2h/Enhancements/GameInteractor/GameInteractor.h"
+
 #define PICTO_SEEN_IN_SCENE 1
 #define PICTO_SEEN_ANYWHERE 2
 
@@ -68,7 +70,9 @@ s32 Snap_RecordPictographedActors(PlayState* play) {
                 case ACTOR_EN_GE2:
                     seen |= PICTO_SEEN_ANYWHERE;
                     break;
-
+                case ACTOR_EN_BEN:
+                    seen |= PICTO_SEEN_ANYWHERE;
+                    break;
                 default:
                     break;
             }
@@ -80,8 +84,10 @@ s32 Snap_RecordPictographedActors(PlayState* play) {
             // If actor is recordable, run its validity function and record if valid
             pictoActor = (PictoActor*)actor;
             if (pictoActor->validationFunc != NULL) {
+                LUSLOG_DEBUG("Actor: %x", actor->id);
                 if (pictoActor->validationFunc(play, actor) == 0) {
                     validCount++;
+                    GameInteractor_ExecuteOnValidPictoActor(actor);
                 }
             }
         }
@@ -157,6 +163,7 @@ s32 Snap_ValidatePictograph(PlayState* play, Actor* actor, s32 flag, Vec3f* pos,
     distance = OLib_Vec3fDist(pos, &camera->eye);
     if ((distance < distanceMin) || (distanceMax < distance)) {
         Snap_SetFlag(PICTO_VALID_BAD_DISTANCE);
+        LUSLOG_DEBUG("PICTO_VALID_BAD_DISTANCE", NULL);
         ret = PICTO_VALID_BAD_DISTANCE;
     }
 
@@ -165,6 +172,7 @@ s32 Snap_ValidatePictograph(PlayState* play, Actor* actor, s32 flag, Vec3f* pos,
     y = Snap_AbsS(Camera_GetCamDirYaw(camera) - BINANG_SUB(rot->y, 0x7FFF));
     if ((0 < angleRange) && ((angleRange < x) || (angleRange < y))) {
         Snap_SetFlag(PICTO_VALID_BAD_ANGLE);
+        LUSLOG_DEBUG("PICTO_VALID_BAD_ANGLE", NULL);
         ret |= PICTO_VALID_BAD_ANGLE;
     }
 
@@ -177,6 +185,7 @@ s32 Snap_ValidatePictograph(PlayState* play, Actor* actor, s32 flag, Vec3f* pos,
     // checks if the coordinates are within the capture region
     if ((x < 0) || (x > PICTO_VALID_WIDTH) || (y < 0) || (y > PICTO_VALID_HEIGHT)) {
         Snap_SetFlag(PICTO_VALID_NOT_IN_VIEW);
+        LUSLOG_DEBUG("PICTO_VALID_NOT_IN_VIEW", NULL);
         ret |= PICTO_VALID_NOT_IN_VIEW;
     }
 
@@ -184,6 +193,7 @@ s32 Snap_ValidatePictograph(PlayState* play, Actor* actor, s32 flag, Vec3f* pos,
     if (BgCheck_ProjectileLineTest(&play->colCtx, pos, &camera->eye, &projectedPos, &poly, true, true, true, true,
                                    &bgId)) {
         Snap_SetFlag(PICTO_VALID_BEHIND_BG);
+        LUSLOG_DEBUG("PICTO_VALID_BAD_BEHIND_BG", NULL);
         ret |= PICTO_VALID_BEHIND_BG;
     }
 
@@ -192,12 +202,14 @@ s32 Snap_ValidatePictograph(PlayState* play, Actor* actor, s32 flag, Vec3f* pos,
     actors[1] = &GET_PLAYER(play)->actor;
     if (CollisionCheck_LineOCCheck(play, &play->colChkCtx, pos, &camera->eye, actors, 2)) {
         Snap_SetFlag(PICTO_VALID_BEHIND_COLLISION);
+        LUSLOG_DEBUG("PICTO_VALID_BEHIND_COLLISION", NULL);
         ret |= PICTO_VALID_BEHIND_COLLISION;
     }
 
     // If all of the above checks pass, set the flag
     if (ret == 0) {
         Snap_SetFlag(flag);
+        LUSLOG_DEBUG("SET PICTO FLAG", NULL);
     }
 
     return ret;

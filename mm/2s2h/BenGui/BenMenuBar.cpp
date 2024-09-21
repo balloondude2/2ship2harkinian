@@ -16,6 +16,7 @@
 #include "2s2h/Enhancements/Cheats/Cheats.h"
 #include "2s2h/Enhancements/Player/Player.h"
 #include "HudEditor.h"
+#include "2s2h/Enhancements/GameInteractor/GameInteractor_Anchor.h"
 
 extern "C" {
 #include "z64.h"
@@ -863,6 +864,152 @@ void DrawDeveloperToolsMenu() {
     }
 }
 
+extern std::shared_ptr<AnchorPlayerLocationWindow> mAnchorPlayerLocationWindow;
+extern std::shared_ptr<AnchorLogWindow> mAnchorLogWindow;
+
+void DrawNetworkMenu() {
+    if (UIWidgets::BeginMenu("Network", UIWidgets::Colors::Yellow)) {
+
+        static std::string ip = CVarGetString("gRemote.IP", "anchor.proxysaw.dev");
+        static uint16_t port = CVarGetInteger("gRemote.Port", 43385);
+
+        static std::string AnchorName = CVarGetString("gRemote.AnchorName", "");
+        static std::string anchorRoomId = CVarGetString("gRemote.AnchorRoomId", "");
+
+        ImGui::Text("Anchor");
+
+        ImGui::Text("Remote IP & Port");
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - ImGui::GetFontSize() * 5.7);
+        if (ImGui::InputText("##gRemote.IP", (char*)ip.c_str(), ip.capacity() + 1)) {
+            CVarSetString("gRemote.IP", ip.c_str());
+            Ship::Context::GetInstance()->GetWindow()->GetGui()->SaveConsoleVariablesOnNextTick();
+        }
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(ImGui::GetFontSize() * 5);
+        if (ImGui::InputScalar("##gRemote.Port", ImGuiDataType_U16, &port)) {
+            CVarSetInteger("gRemote.Port", port);
+            Ship::Context::GetInstance()->GetWindow()->GetGui()->SaveConsoleVariablesOnNextTick();
+        }
+
+        ImGui::Text("Nametag Color & Name");
+        static Color_RGBA8 color = CVarGetColor("gRemote.AnchorColor", { 100, 255, 100, 255 });
+        static ImVec4 colorVec = ImVec4(color.r / 255.0, color.g / 255.0, color.b / 255.0, 1);
+        if (ImGui::ColorEdit3("##gRemote.AnchorColor", (float*)&colorVec,
+                              ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel)) {
+            color.r = colorVec.x * 255.0;
+            color.g = colorVec.y * 255.0;
+            color.b = colorVec.z * 255.0;
+
+            CVarSetColor("gRemote.AnchorColor", color);
+            Ship::Context::GetInstance()->GetWindow()->GetGui()->SaveConsoleVariablesOnNextTick();
+        }
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::InputText("##gRemote.AnchorName", (char*)AnchorName.c_str(), AnchorName.capacity() + 1)) {
+            CVarSetString("gRemote.AnchorName", AnchorName.c_str());
+            Ship::Context::GetInstance()->GetWindow()->GetGui()->SaveConsoleVariablesOnNextTick();
+        }
+        ImGui::Text("Room ID");
+        int flags = 0;
+        if (GameInteractor::Instance->isRemoteInteractorEnabled)
+            flags = ImGuiInputTextFlags_Password;
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::InputText("##gRemote.AnchorRoomId", (char*)anchorRoomId.c_str(), anchorRoomId.capacity() + 1,
+                             flags)) {
+            CVarSetString("gRemote.AnchorRoomId", anchorRoomId.c_str());
+            Ship::Context::GetInstance()->GetWindow()->GetGui()->SaveConsoleVariablesOnNextTick();
+        }
+
+        if (mAnchorPlayerLocationWindow) {
+            UIWidgets::WindowButton("Player Location Window", "gRemote.AnchorPlayerLocationWindow",
+                                    mAnchorPlayerLocationWindow,
+                                    { .tooltip = "This window shows all players in the room and their current "
+                                                 "location.\n"
+                                                 "\n"
+                                                 "You can move this window around, and press the arrow button "
+                                                 "to teleport to the other player." });
+        }
+
+        if (mAnchorLogWindow) {
+            UIWidgets::WindowButton("Incoming Item Window", "gRemote.AnchorLogWindow", mAnchorLogWindow,
+                                    { .tooltip = "This window shows all incoming items from other players. "
+                                                 "The messages will expire after a few seconds.\n"
+                                                 "\n"
+                                                 "You can move this window around, and press the directional "
+                                                 "buttons to change the direction the messages stack towards." });
+        }
+
+        ImGui::Spacing();
+
+        if (!CVarGetInteger("gRemote.Enabled", 0)) {
+            if (UIWidgets::Button("Enable Network")) {
+
+                // CVarSetString("gRemote.IP", "anchor.proxysaw.dev");
+                // CVarSetString("gRemote.Port", "43385");
+                // CVarSetString("gRemote.AnchorName", (char*)AnchorName.c_str());
+                // CVarSetString("gRemote.AnchorRoomId", "bdude2mm");
+                CVarSetInteger("gRemote.Enabled", 1);
+                Ship::Context::GetInstance()->GetWindow()->GetGui()->SaveConsoleVariablesOnNextTick();
+                GameInteractorAnchor::Instance->Enable();
+            }
+        }
+        if (CVarGetInteger("gRemote.Enabled", 0)) {
+            // ImGui::Text("%s Room %d", warpPointSceneList[sceneId], CVarGetInteger(CV "Room", 0));
+
+            if (UIWidgets::Button("Disable Network")) {
+
+                CVarClear("gRemote.Enabled");
+                Ship::Context::GetInstance()->GetWindow()->GetGui()->SaveConsoleVariablesOnNextTick();
+                GameInteractorAnchor::Instance->Disable();
+            }
+        }
+
+        if (GameInteractor::Instance->isRemoteInteractorEnabled) {
+            ImGui::Spacing();
+            if (!GameInteractor::Instance->isRemoteInteractorConnected) {
+                ImGui::Text("Connecting...");
+            }
+        }
+
+        if (GameInteractor::Instance->isRemoteInteractorConnected) {
+            if (ImGui::Button("Request State", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f))) {
+                Anchor_RequestSaveStateFromRemote();
+            }
+
+            ImGui::Text("Players in Room:");
+            ImGui::Text("%s", CVarGetString("gRemote.AnchorName", ""));
+            for (auto& [clientId, client] : GameInteractorAnchor::AnchorClients) {
+                ImGui::Text("%s", client.name.c_str());
+                if (client.clientVersion != GameInteractorAnchor::clientVersion) {
+                    ImGui::SameLine();
+                    ImGui::TextColored(ImVec4(1, 0, 0, 1), ICON_FA_EXCLAMATION_TRIANGLE);
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::BeginTooltip();
+                        ImGui::Text("Incompatible version! Will not work together!");
+                        ImGui::Text("Yours: %s", GameInteractorAnchor::clientVersion.c_str());
+                        ImGui::Text("Theirs: %s", client.clientVersion.c_str());
+                        ImGui::EndTooltip();
+                    }
+                }
+                // if (client.seed != gSaveContext.finalSeed && client.fileNum != 0xFF && gSaveContext.fileNum != 0xFF)
+                // {
+                //     ImGui::SameLine();
+                //     ImGui::TextColored(ImVec4(1, 0, 0, 1), ICON_FA_EXCLAMATION_TRIANGLE);
+                //     if (ImGui::IsItemHovered()) {
+                //         ImGui::BeginTooltip();
+                //         ImGui::Text("Seed mismatch! Continuing will break things!");
+                //         ImGui::Text("Yours: %u", gSaveContext.finalSeed);
+                //         ImGui::Text("Theirs: %u", client.seed);
+                //         ImGui::EndTooltip();
+                //     }
+                // }
+            }
+        }
+
+        ImGui::EndMenu();
+    }
+}
+
 void BenMenuBar::InitElement() {
     UpdateWindowBackendObjects();
 }
@@ -893,6 +1040,10 @@ void BenMenuBar::DrawElement() {
         ImGui::SetCursorPosY(0.0f);
 
         DrawDeveloperToolsMenu();
+
+        ImGui::SetCursorPosY(0.0f);
+
+        DrawNetworkMenu();
 
         ImGui::SetCursorPosY(0.0f);
 

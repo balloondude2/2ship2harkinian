@@ -3,36 +3,39 @@
 
 #include "z64.h"
 #include <nlohmann/json.hpp>
+// #include "2s2h/Enhancements/GameInteractor/GameInteractor_Anchor.h"
+
+#include "macros.h"
 
 using json = nlohmann::json;
 
-void to_json(json& j, const DpadSaveInfo& dpadEquips) {
+inline void to_json(json& j, const DpadSaveInfo& dpadEquips) {
     j = json{
         { "dpadItems", dpadEquips.dpadItems },
         { "dpadSlots", dpadEquips.dpadSlots },
     };
 }
 
-void from_json(const json& j, DpadSaveInfo& dpadEquips) {
+inline void from_json(const json& j, DpadSaveInfo& dpadEquips) {
     for (int i = 0; i < ARRAY_COUNT(dpadEquips.dpadItems); i++) {
         j.at("dpadItems").at(i).get_to(dpadEquips.dpadItems[i]);
         j.at("dpadSlots").at(i).get_to(dpadEquips.dpadSlots[i]);
     }
 }
 
-void to_json(json& j, const ShipSaveInfo& shipSaveInfo) {
+inline void to_json(json& j, const ShipSaveInfo& shipSaveInfo) {
     j = json {
         { "dpadEquips", shipSaveInfo.dpadEquips },
         { "pauseSaveEntrance", shipSaveInfo.pauseSaveEntrance },
     };
 }
 
-void from_json(const json& j, ShipSaveInfo& shipSaveInfo) {
+inline void from_json(const json& j, ShipSaveInfo& shipSaveInfo) {
     j.at("dpadEquips").get_to(shipSaveInfo.dpadEquips);
     j.at("pauseSaveEntrance").get_to(shipSaveInfo.pauseSaveEntrance);
 }
 
-void to_json(json& j, const ItemEquips& itemEquips) {
+inline void to_json(json& j, const ItemEquips& itemEquips) {
     j = json{
         { "buttonItems", itemEquips.buttonItems },
         { "cButtonSlots", itemEquips.cButtonSlots },
@@ -40,7 +43,7 @@ void to_json(json& j, const ItemEquips& itemEquips) {
     };
 }
 
-void from_json(const json& j, ItemEquips& itemEquips) {
+inline void from_json(const json& j, ItemEquips& itemEquips) {
     j.at("equipment").get_to(itemEquips.equipment);
     // buttonItems and cButtonSlots are arrays of arrays, so we need to manually parse them
     for (int i = 0; i < ARRAY_COUNT(itemEquips.buttonItems); i++) {
@@ -49,8 +52,8 @@ void from_json(const json& j, ItemEquips& itemEquips) {
     }
 }
 
-void to_json(json& j, const Inventory& inventory) {
-    // Setup and copy u8 arrays to avoid json treating char[] as strings
+inline void to_json(json& j, const Inventory& inventory) {
+    // Setup and copy u8 arrays to ainline void json treating char[] as strings
     // These char[] are not null-terminated, so saving as strings causes overflow/corruption
     uint8_t dekuPlaygroundPlayerName[3][8];
     memcpy(dekuPlaygroundPlayerName, inventory.dekuPlaygroundPlayerName, sizeof(dekuPlaygroundPlayerName));
@@ -68,7 +71,7 @@ void to_json(json& j, const Inventory& inventory) {
     };
 }
 
-void from_json(const json& j, Inventory& inventory) {
+inline void from_json(const json& j, Inventory& inventory) {
     j.at("items").get_to(inventory.items);
     j.at("ammo").get_to(inventory.ammo);
     j.at("upgrades").get_to(inventory.upgrades);
@@ -83,7 +86,7 @@ void from_json(const json& j, Inventory& inventory) {
     }
 }
 
-void to_json(json& j, const PermanentSceneFlags& permanentSceneFlags) {
+inline void to_json(json& j, const PermanentSceneFlags& permanentSceneFlags) {
     j = json{
         { "chest", permanentSceneFlags.chest },
         { "switch0", permanentSceneFlags.switch0 },
@@ -95,7 +98,7 @@ void to_json(json& j, const PermanentSceneFlags& permanentSceneFlags) {
     };
 }
 
-void from_json(const json& j, PermanentSceneFlags& permanentSceneFlags) {
+inline void from_json(const json& j, PermanentSceneFlags& permanentSceneFlags) {
     j.at("chest").get_to(permanentSceneFlags.chest);
     j.at("switch0").get_to(permanentSceneFlags.switch0);
     j.at("switch1").get_to(permanentSceneFlags.switch1);
@@ -105,8 +108,8 @@ void from_json(const json& j, PermanentSceneFlags& permanentSceneFlags) {
     j.at("rooms").get_to(permanentSceneFlags.rooms);
 }
 
-void to_json(json& j, const SavePlayerData& savePlayerData) {
-    // Setup and copy u8 arrays to avoid json treating char[] as strings
+inline void to_json(json& j, const SavePlayerData& savePlayerData) {
+    // Setup and copy u8 arrays to ainline void json treating char[] as strings
     // These char[] are not null-terminated, so saving as strings causes overflow/corruption
     u8 newf[6];
     u8 playerName[8];
@@ -135,7 +138,7 @@ void to_json(json& j, const SavePlayerData& savePlayerData) {
     };
 }
 
-void from_json(const json& j, SavePlayerData& savePlayerData) {
+inline void from_json(const json& j, SavePlayerData& savePlayerData) {
     j.at("newf").get_to(savePlayerData.newf);
     j.at("threeDayResetCount").get_to(savePlayerData.threeDayResetCount);
     j.at("playerName").get_to(savePlayerData.playerName);
@@ -156,7 +159,7 @@ void from_json(const json& j, SavePlayerData& savePlayerData) {
     j.at("savedSceneId").get_to(savePlayerData.savedSceneId);
 }
 
-void to_json(json& j, const Vec3s& vec) {
+inline void to_json(json& j, const Vec3s& vec) {
     j = json{
         { "x", vec.x },
         { "y", vec.y },
@@ -164,13 +167,13 @@ void to_json(json& j, const Vec3s& vec) {
     };
 }
 
-void from_json(const json& j, Vec3s& vec) {
+inline void from_json(const json& j, Vec3s& vec) {
     j.at("x").get_to(vec.x);
     j.at("y").get_to(vec.y);
     j.at("z").get_to(vec.z);
 }
 
-void to_json(json& j, const HorseData& horseData) {
+inline void to_json(json& j, const HorseData& horseData) {
     j = json{
         { "sceneId", horseData.sceneId },
         { "pos", horseData.pos },
@@ -178,13 +181,13 @@ void to_json(json& j, const HorseData& horseData) {
     };
 }
 
-void from_json(const json& j, HorseData& horseData) {
+inline void from_json(const json& j, HorseData& horseData) {
     j.at("sceneId").get_to(horseData.sceneId);
     j.at("pos").get_to(horseData.pos);
     j.at("yaw").get_to(horseData.yaw);
 }
 
-void to_json(json& j, const SaveInfo& saveInfo) {
+inline void to_json(json& j, const SaveInfo& saveInfo) {
     j = json{
         { "playerData", saveInfo.playerData },
         { "equips", saveInfo.equips },
@@ -221,7 +224,7 @@ void to_json(json& j, const SaveInfo& saveInfo) {
     };
 }
 
-void from_json(const json& j, SaveInfo& saveInfo) {
+inline void from_json(const json& j, SaveInfo& saveInfo) {
     j.at("playerData").get_to(saveInfo.playerData);
     j.at("equips").get_to(saveInfo.equips);
     j.at("inventory").get_to(saveInfo.inventory);
@@ -259,7 +262,7 @@ void from_json(const json& j, SaveInfo& saveInfo) {
     j.at("checksum").get_to(saveInfo.checksum);
 }
 
-void to_json(json& j, const Save& save) {
+inline void to_json(json& j, const Save& save) {
     j = json{
         { "entrance", save.entrance },
         { "equippedMask", save.equippedMask },
@@ -282,7 +285,7 @@ void to_json(json& j, const Save& save) {
     };
 }
 
-void from_json(const json& j, Save& save) {
+inline void from_json(const json& j, Save& save) {
     j.at("entrance").get_to(save.entrance);
     j.at("equippedMask").get_to(save.equippedMask);
     j.at("isFirstCycle").get_to(save.isFirstCycle);
@@ -303,7 +306,7 @@ void from_json(const json& j, Save& save) {
     j.at("shipSaveInfo").get_to(save.shipSaveInfo);
 }
 
-void to_json(json& j, const SaveContext& saveContext) {
+inline void to_json(json& j, const SaveContext& saveContext) {
     j = json{
         { "save", saveContext.save },
         { "eventInf", saveContext.eventInf },
@@ -316,11 +319,11 @@ void to_json(json& j, const SaveContext& saveContext) {
         { "bottleTimerTimeLimits", saveContext.bottleTimerTimeLimits },
         { "bottleTimerCurTimes", saveContext.bottleTimerCurTimes },
         { "bottleTimerPausedOsTimes", saveContext.bottleTimerPausedOsTimes },
-        { "pictoPhotoI5", saveContext.pictoPhotoI5 },
+        //{ "pictoPhotoI5", saveContext.pictoPhotoI5 },
     };
 }
 
-void from_json(const json& j, SaveContext& saveContext) {
+inline void from_json(const json& j, SaveContext& saveContext) {
     j.at("save").get_to(saveContext.save);
     j.at("eventInf").get_to(saveContext.eventInf);
     j.at("unk_1014").get_to(saveContext.unk_1014);
@@ -332,10 +335,10 @@ void from_json(const json& j, SaveContext& saveContext) {
     j.at("bottleTimerTimeLimits").get_to(saveContext.bottleTimerTimeLimits);
     j.at("bottleTimerCurTimes").get_to(saveContext.bottleTimerCurTimes);
     j.at("bottleTimerPausedOsTimes").get_to(saveContext.bottleTimerPausedOsTimes);
-    j.at("pictoPhotoI5").get_to(saveContext.pictoPhotoI5);
+    //j.at("pictoPhotoI5").get_to(saveContext.pictoPhotoI5);
 }
 
-void to_json(json& j, const SaveOptions& saveOptions) {
+inline void to_json(json& j, const SaveOptions& saveOptions) {
     j = json{
         { "optionId", saveOptions.optionId },
         { "language", saveOptions.language },
@@ -345,12 +348,96 @@ void to_json(json& j, const SaveOptions& saveOptions) {
     };
 }
 
-void from_json(const json& j, SaveOptions& saveOptions) {
+inline void from_json(const json& j, SaveOptions& saveOptions) {
     j.at("optionId").get_to(saveOptions.optionId);
     j.at("language").get_to(saveOptions.language);
     j.at("audioSetting").get_to(saveOptions.audioSetting);
     j.at("languageSetting").get_to(saveOptions.languageSetting);
     j.at("zTargetSetting").get_to(saveOptions.zTargetSetting);
+}
+
+inline void from_json(const json& j, Color_RGB8& color) {
+    j.at("r").get_to(color.r);
+    j.at("g").get_to(color.g);
+    j.at("b").get_to(color.b);
+}
+
+inline void to_json(json& j, const Color_RGB8& color) {
+    j = json{
+        {"r", color.r},
+        {"g", color.g},
+        {"b", color.b}
+    };
+}
+
+inline void from_json(const json& j, Color_RGBA8& color) {
+    j.at("r").get_to(color.r);
+    j.at("g").get_to(color.g);
+    j.at("b").get_to(color.b);
+    j.at("a").get_to(color.a);
+}
+
+inline void to_json(json& j, const Color_RGBA8& color) {
+    j = json{
+        {"r", color.r},
+        {"g", color.g},
+        {"b", color.b},
+        {"a", color.a}
+    };
+}
+
+inline void to_json(json& j, const Vec3f& vec) {
+    j = json{ { "x", vec.x }, { "y", vec.y }, { "z", vec.z } };
+}
+
+inline void from_json(const json& j, Vec3f& vec) {
+    j.at("x").get_to(vec.x);
+    j.at("y").get_to(vec.y);
+    j.at("z").get_to(vec.z);
+}
+
+inline void to_json(json& j, const PosRot& posRot) {
+    j = json{
+        { "pos", posRot.pos },
+        { "rot", posRot.rot },
+    };
+}
+
+inline void from_json(const json& j, PosRot& posRot) {
+    j.at("pos").get_to(posRot.pos);
+    j.at("rot").get_to(posRot.rot);
+}
+
+inline void from_json(const json& j, PlayerData& playerData) {
+    j.at("playerForm").get_to(playerData.playerForm);
+    // j.at("playerSound").get_to(playerData.playerSound);
+    // j.at("sheathType").get_to(playerData.sheathType);
+    // j.at("leftHandType").get_to(playerData.leftHandType);
+    // j.at("biggoron_broken").get_to(playerData.biggoron_broken);
+    // j.at("rightHandType").get_to(playerData.rightHandType);
+    // j.at("tunicType").get_to(playerData.tunicType);
+    // j.at("bootsType").get_to(playerData.bootsType);
+    // j.at("faceType").get_to(playerData.faceType);
+    // j.at("shieldType").get_to(playerData.shieldType);
+    // j.at("damageEffect").get_to(playerData.damageEffect);
+    // j.at("damageValue").get_to(playerData.damageValue);
+}
+
+inline void to_json(json& j, const PlayerData& playerData) {
+    j = json{
+        { "playerForm", playerData.playerForm },
+        // { "playerSound", playerData.playerSound },
+        // { "sheathType", playerData.sheathType },
+        // { "leftHandType", playerData.leftHandType },
+        // { "biggoron_broken", playerData.biggoron_broken },
+        // { "rightHandType", playerData.rightHandType },
+        // { "tunicType", playerData.tunicType },
+        // { "bootsType", playerData.bootsType },
+        // { "faceType", playerData.faceType },
+        // { "shieldType", playerData.shieldType },
+        // { "damageEffect", playerData.damageEffect },
+        // { "damageValue", playerData.damageValue },
+    };
 }
 
 #endif // BenJsonConversions_hpp

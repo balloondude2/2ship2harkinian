@@ -7,6 +7,7 @@
 #include "DeveloperTools/ActorViewer.h"
 #include "DeveloperTools/CollisionViewer.h"
 #include "DeveloperTools/EventLog.h"
+#include "Enhancements/GameInteractor/Anchor_Windows.h"
 
 namespace BenGui {
     void SetupHooks();

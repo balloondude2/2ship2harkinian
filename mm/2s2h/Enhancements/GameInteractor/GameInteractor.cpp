@@ -3,6 +3,9 @@
 
 extern "C" {
 #include "z64actor.h"
+#include "macros.h"
+#include "variables.h"
+extern PlayState* gPlayState;
 }
 
 #include <libultraship/bridge.h>
@@ -40,6 +43,10 @@ void GameInteractor_ExecuteAfterKaleidoDrawPage(PauseContext* pauseCtx, u16 paus
 
 void GameInteractor_ExecuteOnSaveInit(s16 fileNum) {
     GameInteractor::Instance->ExecuteHooks<GameInteractor::OnSaveInit>(fileNum);
+}
+
+void GameInteractor_ExecuteOnLoadSave(s16 fileNum) {
+    GameInteractor::Instance->ExecuteHooks<GameInteractor::OnLoadSave>(fileNum);
 }
 
 void GameInteractor_ExecuteBeforeEndOfCycleSave() {
@@ -145,6 +152,13 @@ void GameInteractor_ExecuteOnActorDestroy(Actor* actor) {
     GameInteractor::Instance->ExecuteHooksForFilter<GameInteractor::OnActorDestroy>(actor);
 }
 
+void GameInteractor_ExecuteOnValidPictoActor(Actor* actor) {
+    GameInteractor::Instance->ExecuteHooks<GameInteractor::OnValidPictoActor>(actor);
+    GameInteractor::Instance->ExecuteHooksForID<GameInteractor::OnValidPictoActor>(actor->id, actor);
+    GameInteractor::Instance->ExecuteHooksForPtr<GameInteractor::OnValidPictoActor>((uintptr_t)actor, actor);
+    GameInteractor::Instance->ExecuteHooksForFilter<GameInteractor::OnValidPictoActor>(actor);
+}
+
 void GameInteractor_ExecuteOnPlayerPostLimbDraw(Player* player, s32 limbIndex) {
     GameInteractor::Instance->ExecuteHooks<GameInteractor::OnPlayerPostLimbDraw>(player, limbIndex);
     GameInteractor::Instance->ExecuteHooksForID<GameInteractor::OnPlayerPostLimbDraw>(limbIndex, player, limbIndex);
@@ -230,6 +244,12 @@ void GameInteractor_ExecuteOnItemGive(u8 item) {
     GameInteractor::Instance->ExecuteHooksForFilter<GameInteractor::OnItemGive>(item);
 }
 
+void GameInteractor_ExecuteOnGreatFairyReward(GIFairyRewardType reward) {
+    GameInteractor::Instance->ExecuteHooks<GameInteractor::OnGreatFairyReward>(reward);
+    GameInteractor::Instance->ExecuteHooksForID<GameInteractor::OnGreatFairyReward>(reward, reward);
+    GameInteractor::Instance->ExecuteHooksForFilter<GameInteractor::OnGreatFairyReward>(reward);
+}
+
 bool GameInteractor_Should(GIVanillaBehavior flag, bool result, void* opt) {
     GameInteractor::Instance->ExecuteHooks<GameInteractor::ShouldVanillaBehavior>(flag, &result, opt);
     GameInteractor::Instance->ExecuteHooksForID<GameInteractor::ShouldVanillaBehavior>(flag, flag, &result, opt);
@@ -295,4 +315,13 @@ uint32_t GameInteractor_Dpad(GIDpadType type, uint32_t buttonCombo) {
     }
 
     return result;
+}
+
+bool GameInteractor::IsSaveLoaded() {
+    Player* player;
+    if (gPlayState != NULL) {
+        player = GET_PLAYER(gPlayState);
+    }
+    return (gPlayState == NULL || player == NULL || gSaveContext.fileNum < 0 || gSaveContext.fileNum > 2) ? false
+                                                                                                          : true;
 }

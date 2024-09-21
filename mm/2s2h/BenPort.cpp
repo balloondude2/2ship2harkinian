@@ -48,7 +48,7 @@ CrowdControl* CrowdControl::Instance;
 #include <libultraship/libultraship.h>
 #include <BenGui/BenGui.hpp>
 
-#include "Enhancements/GameInteractor/GameInteractor.h"
+// #include "Enhancements/GameInteractor/GameInteractor.h"
 #include "Enhancements/Enhancements.h"
 #include "2s2h/Enhancements/GfxPatcher/AuthenticGfxPatches.h"
 #include "2s2h/DeveloperTools/DebugConsole.h"
@@ -95,6 +95,12 @@ CrowdControl* CrowdControl::Instance;
 #include "2s2h/resource/importer/BackgroundFactory.h"
 #include "2s2h/resource/importer/TextureAnimationFactory.h"
 #include "2s2h/resource/importer/KeyFrameFactory.h"
+
+#include "Enhancements/GameInteractor/GameInteractor_Anchor.h"
+GameInteractorAnchor* GameInteractorAnchor::Instance;
+
+//#include <SDL2/SDL_net.h>
+#include "Enhancements/GameInteractor/GameInteractor.h"
 
 OTRGlobals* OTRGlobals::Instance;
 GameInteractor* GameInteractor::Instance;
@@ -499,6 +505,13 @@ extern "C" void InitOTR() {
     }
 #endif
 
+    GameInteractorAnchor::Instance = new GameInteractorAnchor();
+
+    SDLNet_Init();
+    if (CVarGetInteger("gRemote.Enabled", 0)) {
+        GameInteractorAnchor::Instance->Enable();
+    }
+
     std::shared_ptr<Ship::Config> conf = OTRGlobals::Instance->context->GetConfig();
 }
 
@@ -513,6 +526,12 @@ extern "C" void DeinitOTR() {
     CrowdControl::Instance->Disable();
     CrowdControl::Instance->Shutdown();
 #endif
+
+    if (CVarGetInteger("gRemote.Enabled", 0)) {
+        GameInteractorAnchor::Instance->Disable();
+    }
+
+    SDLNet_Quit();
 
     // Destroying gui here because we have shared ptrs to LUS objects which output to SPDLOG which is destroyed before
     // these shared ptrs.

@@ -366,6 +366,11 @@ typedef struct ShipSaveContext {
 } ShipSaveContext;
 // #endregion
 
+typedef struct {
+    u8 playerForm;
+} PlayerData;
+
+
 typedef struct SaveContext {
     /* 0x0000 */ Save save;
     /* 0x100C */ u8 eventInf[8];                        // "event_inf"

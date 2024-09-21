@@ -1,4 +1,5 @@
 #include "Enhancements.h"
+#include "GameInteractor/GameInteractor_Anchor.h"
 
 void InitEnhancements() {
     // Camera
@@ -70,4 +71,6 @@ void InitEnhancements() {
     // Modes
     RegisterPlayAsKafei();
     RegisterTimeMovesWhenYouMove();
+
+    Anchor_RegisterHooks();
 }

@@ -72,6 +72,12 @@ typedef enum {
     GI_DPAD_EQUIP,
 } GIDpadType;
 
+typedef enum {
+    GI_MAGIC,
+    GI_DOUBLE_MAGIC,
+    GI_DOUBLE_DEFENSE,
+} GIFairyRewardType;
+
 #ifdef __cplusplus
 
 #include <vector>
@@ -79,6 +85,11 @@ typedef enum {
 #include <unordered_map>
 #include <cstdint>
 #include <algorithm>
+
+#include <thread>
+#include <SDL2/SDL_main.h>
+#include <SDL2/SDL_net.h>
+#include <nlohmann/json.hpp>
 
 typedef uint32_t HOOK_ID;
 
@@ -89,11 +100,37 @@ typedef uint32_t HOOK_ID;
     }
 
 class GameInteractor {
+  private:
+    IPaddress remoteIP;
+    TCPsocket remoteSocket;
+    std::thread remoteThreadReceive;
+    std::function<void(char payload[512])> remoteDataHandler;
+    std::function<void(nlohmann::json)> remoteJsonHandler;
+    std::function<void()> remoteConnectedHandler;
+    std::function<void()> remoteDisconnectedHandler;
+
+    void ReceiveFromServer();
+    void HandleRemoteData(char payload[512]);
+    void HandleRemoteJson(std::string payload);
+
   public:
     static GameInteractor* Instance;
 
     // Game State
     class State {};
+
+    // Remote
+    bool isRemoteInteractorEnabled;
+    bool isRemoteInteractorConnected;
+
+    void EnableRemoteInteractor();
+    void DisableRemoteInteractor();
+    void RegisterRemoteDataHandler(std::function<void(char payload[512])> method);
+    void RegisterRemoteJsonHandler(std::function<void(nlohmann::json)> method);
+    void RegisterRemoteConnectedHandler(std::function<void()> method);
+    void RegisterRemoteDisconnectedHandler(std::function<void()> method);
+    void TransmitDataToRemote(const char* payload);
+    void TransmitJsonToRemote(nlohmann::json packet);
 
     // Game Hooks
     HOOK_ID nextHookId = 1;
@@ -267,6 +304,7 @@ class GameInteractor {
     DEFINE_HOOK(BeforeKaleidoDrawPage, (PauseContext * pauseCtx, u16 pauseIndex));
     DEFINE_HOOK(AfterKaleidoDrawPage, (PauseContext * pauseCtx, u16 pauseIndex));
     DEFINE_HOOK(OnSaveInit, (s16 fileNum));
+    DEFINE_HOOK(OnLoadSave, (s16 fileNum));
     DEFINE_HOOK(BeforeEndOfCycleSave, ());
     DEFINE_HOOK(AfterEndOfCycleSave, ());
     DEFINE_HOOK(BeforeMoonCrashSaveReset, ());
@@ -285,6 +323,7 @@ class GameInteractor {
     DEFINE_HOOK(OnActorDraw, (Actor * actor));
     DEFINE_HOOK(OnActorKill, (Actor * actor));
     DEFINE_HOOK(OnActorDestroy, (Actor * actor));
+    DEFINE_HOOK(OnValidPictoActor, (Actor * actor));
     DEFINE_HOOK(OnPlayerPostLimbDraw, (Player * player, s32 limbIndex));
 
     DEFINE_HOOK(OnSceneFlagSet, (s16 sceneId, FlagType flagType, u32 flag));
@@ -303,7 +342,11 @@ class GameInteractor {
     DEFINE_HOOK(ShouldItemGive, (u8 item, bool* should));
     DEFINE_HOOK(OnItemGive, (u8 item));
 
+    DEFINE_HOOK(OnGreatFairyReward, (GIFairyRewardType reward));
+
     DEFINE_HOOK(ShouldVanillaBehavior, (GIVanillaBehavior flag, bool* should, void* optionalArg));
+
+    static bool IsSaveLoaded();
 };
 
 extern "C" {
@@ -317,6 +360,7 @@ void GameInteractor_ExecuteOnKaleidoUpdate(PauseContext* pauseCtx);
 void GameInteractor_ExecuteBeforeKaleidoDrawPage(PauseContext* pauseCtx, u16 pauseIndex);
 void GameInteractor_ExecuteAfterKaleidoDrawPage(PauseContext* pauseCtx, u16 pauseIndex);
 void GameInteractor_ExecuteOnSaveInit(s16 fileNum);
+void GameInteractor_ExecuteOnLoadSave(s16 fileNum);
 void GameInteractor_ExecuteBeforeEndOfCycleSave();
 void GameInteractor_ExecuteAfterEndOfCycleSave();
 void GameInteractor_ExecuteBeforeMoonCrashSaveReset();
@@ -335,6 +379,7 @@ bool GameInteractor_ShouldActorDraw(Actor* actor);
 void GameInteractor_ExecuteOnActorDraw(Actor* actor);
 void GameInteractor_ExecuteOnActorKill(Actor* actor);
 void GameInteractor_ExecuteOnActorDestroy(Actor* actor);
+void GameInteractor_ExecuteOnValidPictoActor(Actor* actor);
 void GameInteractor_ExecuteOnPlayerPostLimbDraw(Player* player, s32 limbIndex);
 
 void GameInteractor_ExecuteOnSceneFlagSet(s16 sceneId, FlagType flagType, u32 flag);
@@ -352,6 +397,8 @@ void GameInteractor_ExecuteOnOpenText(u16 textId);
 
 bool GameInteractor_ShouldItemGive(u8 item);
 void GameInteractor_ExecuteOnItemGive(u8 item);
+
+void GameInteractor_ExecuteOnGreatFairyReward(GIFairyRewardType reward);
 
 bool GameInteractor_Should(GIVanillaBehavior flag, bool result, void* optionalArg);
 #define REGISTER_VB_SHOULD(flag, body)                                                      \

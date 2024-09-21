@@ -35,6 +35,8 @@ std::shared_ptr<HudEditorWindow> mHudEditorWindow;
 std::shared_ptr<ActorViewerWindow> mActorViewerWindow;
 std::shared_ptr<CollisionViewerWindow> mCollisionViewerWindow;
 std::shared_ptr<EventLogWindow> mEventLogWindow;
+std::shared_ptr<AnchorPlayerLocationWindow> mAnchorPlayerLocationWindow;
+std::shared_ptr<AnchorLogWindow> mAnchorLogWindow;
 
 void SetupGuiElements() {
     auto gui = Ship::Context::GetInstance()->GetWindow()->GetGui();
@@ -89,6 +91,13 @@ void SetupGuiElements() {
 
     mEventLogWindow = std::make_shared<EventLogWindow>("gWindows.EventLog", "Event Log");
     gui->AddGuiWindow(mEventLogWindow);
+
+    mAnchorPlayerLocationWindow =
+        std::make_shared<AnchorPlayerLocationWindow>("gRemote.AnchorPlayerLocation", "Anchor Player Location");
+    gui->AddGuiWindow(mAnchorPlayerLocationWindow);
+
+    mAnchorLogWindow = std::make_shared<AnchorLogWindow>("gRemote.AnchorLogWindow", "Anchor Log");
+    gui->AddGuiWindow(mAnchorLogWindow);
 }
 
 void Destroy() {
@@ -99,6 +108,8 @@ void Destroy() {
     mGfxDebuggerWindow = nullptr;
     mCollisionViewerWindow = nullptr;
     mEventLogWindow = nullptr;
+    mAnchorPlayerLocationWindow = nullptr;
+    mAnchorLogWindow = nullptr;
 
     mSaveEditorWindow = nullptr;
     mHudEditorWindow = nullptr;

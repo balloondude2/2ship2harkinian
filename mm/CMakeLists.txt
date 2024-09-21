@@ -365,10 +365,10 @@ endif()
 find_package(SDL2)
 set(SDL2-INCLUDE ${SDL2_INCLUDE_DIRS})
 
-if (BUILD_CROWD_CONTROL)
+#if (BUILD_CROWD_CONTROL)
     find_package(SDL2_net)
     set(SDL2-NET-INCLUDE ${SDL_NET_INCLUDE_DIRS})
-endif()
+#endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE assets
 	${CMAKE_CURRENT_SOURCE_DIR}/include/
@@ -651,6 +651,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
 		"SDL2::SDL2;"
 		"SDL2::SDL2main;"
         #"$<$<BOOL:${BUILD_CROWD_CONTROL}>:SDL2_net::SDL2_net-static>"
+        "SDL2_net::SDL2_net-static;"
 		"glfw;"
 		"winmm;"
 		"imm32;"
@@ -687,6 +688,7 @@ else()
 		"ZAPDLib;"
 		SDL2::SDL2
  #       "$<$<BOOL:${BUILD_CROWD_CONTROL}>:SDL2_net::SDL2_net>"
+        SDL2_net::SDL2_net
 		${CMAKE_DL_LIBS}
 		Threads::Threads
 	)
