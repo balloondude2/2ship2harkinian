@@ -59,6 +59,7 @@ typedef enum {
     GI_VB_DISABLE_LETTERBOX,
     GI_VB_CLOCK_TOWER_OPENING_CONSIDER_THIS_FIRST_CYCLE,
     GI_VB_DRAW_SLIME_BODY_ITEM,
+    GI_VB_ZTARGET_SPEED_CHECK,
 } GIVanillaBehavior;
 
 typedef enum {
@@ -311,6 +312,7 @@ class GameInteractor {
     DEFINE_HOOK(OnSceneInit, (s8 sceneId, s8 spawnNum));
     DEFINE_HOOK(OnRoomInit, (s8 sceneId, s8 roomNum));
     DEFINE_HOOK(AfterRoomSceneCommands, (s8 sceneId, s8 roomNum));
+    DEFINE_HOOK(OnPlayDrawWorldEnd, ());
     DEFINE_HOOK(OnPlayDestroy, ());
 
     DEFINE_HOOK(ShouldActorInit, (Actor * actor, bool* should));
@@ -320,6 +322,7 @@ class GameInteractor {
     DEFINE_HOOK(ShouldActorDraw, (Actor * actor, bool* should));
     DEFINE_HOOK(OnActorDraw, (Actor * actor));
     DEFINE_HOOK(OnActorKill, (Actor * actor));
+    DEFINE_HOOK(OnActorDestroy, (Actor * actor));
     DEFINE_HOOK(OnValidPictoActor, (Actor * actor));
     DEFINE_HOOK(OnPlayerPostLimbDraw, (Player * player, s32 limbIndex));
 
@@ -365,6 +368,7 @@ void GameInteractor_ExecuteBeforeMoonCrashSaveReset();
 void GameInteractor_ExecuteOnSceneInit(s16 sceneId, s8 spawnNum);
 void GameInteractor_ExecuteOnRoomInit(s16 sceneId, s8 roomNum);
 void GameInteractor_ExecuteAfterRoomSceneCommands(s16 sceneId, s8 roomNum);
+void GameInteractor_ExecuteOnPlayDrawWorldEnd();
 void GameInteractor_ExecuteOnPlayDestroy();
 
 bool GameInteractor_ShouldActorInit(Actor* actor);
@@ -374,6 +378,7 @@ void GameInteractor_ExecuteOnActorUpdate(Actor* actor);
 bool GameInteractor_ShouldActorDraw(Actor* actor);
 void GameInteractor_ExecuteOnActorDraw(Actor* actor);
 void GameInteractor_ExecuteOnActorKill(Actor* actor);
+void GameInteractor_ExecuteOnActorDestroy(Actor* actor);
 void GameInteractor_ExecuteOnValidPictoActor(Actor* actor);
 void GameInteractor_ExecuteOnPlayerPostLimbDraw(Player* player, s32 limbIndex);
 
