@@ -8,6 +8,7 @@
 //#include <soh/Enhancements/randomizer/randomizerTypes.h>
 //#include <soh/Enhancements/randomizer/adult_trade_shuffle.h>
 //#include <soh/Enhancements/nametag.h>
+#include "2s2h/Enhancements/NameTag/NameTag.h"
 //#include <soh/util.h>
 #include <nlohmann/json.hpp>
 #include "2s2h/BenJsonConversions.hpp"
@@ -39,13 +40,15 @@ extern u8 Item_GiveImpl(PlayState* play, u8 item);
 // TODO: Don't hardcode this, maybe move en_ben from actor_table. soh has actorDB
 s16 gEnLinkPuppetId = 0x2B2;
 
+#define ANCHOR_ACTOR_NAMETAG_TAG "anchor_actor"
+
 using json = nlohmann::json;
 
 void from_json(const json& j, AnchorClient& client) {
     j.contains("clientId") ? j.at("clientId").get_to(client.clientId) : client.clientId = 0;
     j.contains("clientVersion") ? j.at("clientVersion").get_to(client.clientVersion) : client.clientVersion = "???";
     j.contains("name") ? j.at("name").get_to(client.name) : client.name = "???";
-    j.contains("color") ? j.at("color").get_to(client.color) : client.color = { 255, 255, 255 };
+    j.contains("color") ? j.at("color").get_to(client.color) : client.color = { 255, 255, 255, 255 };
     j.contains("seed") ? j.at("seed").get_to(client.seed) : client.seed = 0;
     j.contains("fileNum") ? j.at("fileNum").get_to(client.fileNum) : client.fileNum = 0xFF;
     j.contains("gameComplete") ? j.at("gameComplete").get_to(client.gameComplete) : client.gameComplete = false;
@@ -74,6 +77,14 @@ void from_json(const json& j, CycleSceneFlags& flags) {
     j.at("clearedRoom").get_to(flags.clearedRoom);
     j.at("collectible").get_to(flags.collectible);
 }
+
+std::vector<int16_t> yOffsets = {
+    50, // fd/human
+    60, // goron
+    50, // zoro
+    30, // deku
+    30, // human
+};
 
 std::vector<std::string> itemNames = {
     /* 0x00 */ "ITEM_OCARINA_OF_TIME",
@@ -478,7 +489,7 @@ void Anchor_DisplayMessage(AnchorMessage message = {}) {
 void Anchor_SendClientData() {
     nlohmann::json payload;
     payload["data"]["name"] = CVarGetString("gRemote.AnchorName", "");
-    payload["data"]["color"] = CVarGetColor24("gRemote.AnchorColor", { 100, 255, 100 });
+    payload["data"]["color"] = CVarGetColor("gRemote.AnchorColor", { 100, 255, 100, 255 });
     payload["data"]["clientVersion"] = GameInteractorAnchor::clientVersion;
     payload["data"]["role"] = GameInteractorAnchor::anchorRole;
     payload["type"] = "UPDATE_CLIENT_DATA";
@@ -778,6 +789,20 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
                 payload.contains("entranceIndex") ? payload.at("entranceIndex").get<int16_t>() : 0;
             GameInteractorAnchor::AnchorClients[clientId].posRot = payload["posRot"].get<PosRot>();
             if (payload.contains("playerData")) {
+                if (GameInteractorAnchor::AnchorClients[clientId].playerData.playerForm != payload["playerData"].get<PlayerData>().playerForm) {
+                    Actor* actor = gPlayState->actorCtx.actorLists[ACTORCAT_ITEMACTION].first;
+                    while (actor != NULL) {
+                        if (actor->id == gEnLinkPuppetId) {
+                            if (clientId == GameInteractorAnchor::ActorIndexToClientId[actor->params - 3]) {
+                                NameTag_RemoveAllForActor(actor);
+                                u8 form = payload["playerData"].get<PlayerData>().playerForm;
+                                NameTagOptions options = {ANCHOR_ACTOR_NAMETAG_TAG, yOffsets[form], Anchor_GetClientColor(actor->params - 3), 0};
+                                NameTag_RegisterForActorWithOptions(actor, Anchor_GetClientName(actor->params - 3), options);
+                            }
+                        }
+                        actor = actor->next;
+                    }
+                }
                 GameInteractorAnchor::AnchorClients[clientId].playerData = payload["playerData"].get<PlayerData>();
             }
             GameInteractorAnchor::AnchorClients[clientId].role = payload["role"].get<TagRole>();
@@ -848,6 +873,22 @@ void GameInteractorAnchor::HandleRemoteJson(nlohmann::json payload) {
             GameInteractorAnchor::AnchorClients[clientId].sceneNum = client.sceneNum;
             GameInteractorAnchor::AnchorClients[clientId].entranceIndex = client.entranceIndex;
             GameInteractorAnchor::AnchorClients[clientId].role = client.role;
+
+            // TODO: This seems very janky.
+            if (client.sceneNum == gPlayState->sceneId) {
+                Actor* actor = gPlayState->actorCtx.actorLists[ACTORCAT_ITEMACTION].first;
+                while (actor != NULL) {
+                    if (actor->id == gEnLinkPuppetId) {
+                        if (clientId == GameInteractorAnchor::ActorIndexToClientId[actor->params - 3]) {
+                            NameTag_RemoveAllForActor(actor);
+                            u8 form = Anchor_GetClientPlayerData(actor->params - 3).playerForm;
+                            NameTagOptions options = {ANCHOR_ACTOR_NAMETAG_TAG, yOffsets[form], client.color, 0};
+                            NameTag_RegisterForActorWithOptions(actor, client.name.c_str(), options);
+                        }
+                    }
+                    actor = actor->next;
+                }
+            }            
         }
     }
 
@@ -1131,10 +1172,10 @@ uint8_t Anchor_GetClientRoomIndex(uint32_t actorIndex) {
     return client->roomIndex;
 }
 
-Color_RGB8 Anchor_GetClientColor(uint32_t actorIndex) {
+Color_RGBA8 Anchor_GetClientColor(uint32_t actorIndex) {
     AnchorClient* client = Anchor_GetClientByActorIndex(actorIndex);
     if (client == nullptr)
-        return { 100, 255, 100 };
+        return { 100, 255, 100, 255 };
 
     return client->color;
 }
@@ -1206,8 +1247,10 @@ void Anchor_RefreshClientActors() {
             Actor_Spawn(&gPlayState->actorCtx, gPlayState, gEnLinkPuppetId, client.posRot.pos.x, client.posRot.pos.y,
                         client.posRot.pos.z, client.posRot.rot.x, client.posRot.rot.y, client.posRot.rot.z, 3 + i);
         // Todo: This was removed in player models branch
-        // TODO: Add nametag stuff
-        // NameTag_RegisterForActor(fairy, client.name.c_str());
+        // TODO: yOffset needs to change per form. 50 seems good for zora.
+        u8 form = Anchor_GetClientPlayerData(fairy->params - 3).playerForm;
+        NameTagOptions options = {ANCHOR_ACTOR_NAMETAG_TAG, yOffsets[form], client.color, 0};
+        NameTag_RegisterForActorWithOptions(fairy, client.name.c_str(), options);
         i++;
     }
 }

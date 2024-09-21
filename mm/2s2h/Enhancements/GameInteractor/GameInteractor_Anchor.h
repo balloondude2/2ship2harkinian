@@ -17,7 +17,7 @@ typedef struct {
     uint32_t clientId;
     std::string clientVersion;
     std::string name;
-    Color_RGB8 color;
+    Color_RGBA8 color;
     uint32_t seed;
     uint8_t fileNum;
     bool gameComplete;
@@ -75,7 +75,7 @@ const char* Anchor_GetClientName(uint32_t actorIndex);
 uint8_t Anchor_GetClientRoomIndex(uint32_t actorIndex);
 Vec3s* Anchor_GetClientJointTable(uint32_t actorIndex);
 PlayerData Anchor_GetClientPlayerData(uint32_t actorIndex);
-Color_RGB8 Anchor_GetClientColor(uint32_t actorIndex);
+Color_RGBA8 Anchor_GetClientColor(uint32_t actorIndex);
 uint8_t Anchor_GetClientTagRole(uint32_t actorIndex);
 uint8_t Anchor_GetOwnTagRole();
 void Anchor_RefreshClientActors();
