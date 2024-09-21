@@ -32,6 +32,7 @@ typedef struct {
 class GameInteractorAnchor {
   private:
     bool isEnabled;
+    bool gameStarted;
 
     void HandleRemoteJson(nlohmann::json payload);
 
@@ -44,6 +45,7 @@ class GameInteractorAnchor {
 
     void Enable();
     void Disable();
+    void StartTag();
 
     void TransmitJsonToRemote(nlohmann::json payload);
 };

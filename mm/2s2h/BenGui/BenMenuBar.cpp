@@ -956,6 +956,11 @@ void DrawNetworkMenu() {
         if (CVarGetInteger("gRemote.Enabled", 0)) {
             // ImGui::Text("%s Room %d", warpPointSceneList[sceneId], CVarGetInteger(CV "Room", 0));
 
+            if (UIWidgets::Button("Start Game of Tag")) {
+                Ship::Context::GetInstance()->GetWindow()->GetGui()->SaveConsoleVariablesOnNextTick();
+                GameInteractorAnchor::Instance->StartTag();
+            }
+
             if (UIWidgets::Button("Disable Network")) {
 
                 CVarClear("gRemote.Enabled");
