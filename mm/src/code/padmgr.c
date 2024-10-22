@@ -512,7 +512,7 @@ void PadMgr_UpdateInputs(void) {
  * a VRU other than on the first VI retrace.
  */
 void PadMgr_InitVoice(void) {
-#if 0
+// #if 0
     s32 i;
     OSMesgQueue* serialEventQueue;
     s32 ret;
@@ -530,7 +530,7 @@ void PadMgr_InitVoice(void) {
             } else {
                 sPadMgrInstance->ctrlrType[i] = PADMGR_CONT_VOICE;
                 sVoiceInitStatus = VOICE_INIT_SUCCESS;
-                func_801A4EB0();
+                func_801A4EB0(); // AudioVoice_Noop()
             }
         }
     }
@@ -538,7 +538,7 @@ void PadMgr_InitVoice(void) {
     if (sVoiceInitStatus == VOICE_INIT_TRY) {
         sVoiceInitStatus = VOICE_INIT_FAILED;
     }
-#endif
+// #endif
 }
 
 /**
@@ -550,6 +550,11 @@ void PadMgr_UpdateConnections(void) {
     char msg[2048];
 
     for (i = 0; i < MAXCONTROLLERS; i++) {
+        // LUSLOG_DEBUG("padStatus.err: %x", sPadMgrInstance->padStatus[i].err_no); // 0
+        // LUSLOG_DEBUG("padStatus.type: %x", sPadMgrInstance->padStatus[i].type); // 0
+        if (i == MAXCONTROLLERS - 1) { // force port 4 to be voice
+            goto Voice;
+        }
         goto TriggerKenix;
         if (sPadMgrInstance->padStatus[i].err_no == 0) {
             switch (sPadMgrInstance->padStatus[i].type & CONT_TYPE_MASK) {
@@ -572,6 +577,7 @@ void PadMgr_UpdateConnections(void) {
 
                 case CONT_TYPE_VOICE:
                     // Voice Recognition Unit
+                    Voice:
                     if (sPadMgrInstance->ctrlrType[i] == PADMGR_CONT_NONE) {
                         sPadMgrInstance->ctrlrType[i] = PADMGR_CONT_VOICE_PLUGGED;
                         sPadMgrInstance->pakType[i] = CONT_PAK_NONE;

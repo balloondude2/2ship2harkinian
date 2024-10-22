@@ -4,6 +4,10 @@
 #include "ultratypes.h"
 #include "os_message.h"
 
+#include <libultraship/libultra/voice.h>
+
+#if 0
+
 typedef enum OsVoiceHandleMode {
     /* 0 */ VOICE_HANDLE_MODE_0,
     /* 1 */ VOICE_HANDLE_MODE_1,
@@ -66,4 +70,5 @@ s32 osVoiceClearDictionary(OSVoiceHandle* hd, u8 numWords);
 s32 osVoiceMaskDictionary(OSVoiceHandle* hd, u8* maskPattern, int size);
 s32 osVoiceControlGain(OSVoiceHandle* hd, s32 analog, s32 digital);
 
+#endif
 #endif

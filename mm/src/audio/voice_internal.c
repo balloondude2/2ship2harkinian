@@ -58,8 +58,8 @@ s32 func_801A51F0(s32 errorCode) {
 }
 
 s32 func_801A5228(OSVoiceDictionary* dict) {
-    return 0;
-#if 0
+    // return 0;
+// #if 0
     OSMesgQueue* serialEventQueue;
     s32 errorCode;
     u8 numWords;
@@ -97,12 +97,12 @@ s32 func_801A5228(OSVoiceDictionary* dict) {
     }
 
     return errorCode;
-#endif
+// #endif
 }
 
 OSVoiceData* func_801A5390(void) {
-    return NULL;
-#if 0
+    // return NULL;
+// #if 0
     OSVoiceData* voiceData;
     OSMesgQueue* serialEventQueue;
 
@@ -114,7 +114,7 @@ OSVoiceData* func_801A5390(void) {
     PadMgr_VoiceReleaseSerialEventQueue(serialEventQueue);
 
     return voiceData;
-#endif
+// #endif
 }
 
 // Unused
@@ -133,7 +133,7 @@ void func_801A53E8(u16 distance, u16 answerNum, u16 warning, u16 voiceLevel, u16
 // Unused
 // Could have a return? or be void return?
 s32 func_801A541C(s32 analog, s32 digital) {
-#if 0
+// #if 0
     s32 errorCode;
     OSMesgQueue* serialEventQueue;
 
@@ -146,13 +146,13 @@ s32 func_801A541C(s32 analog, s32 digital) {
             func_801A51F0(errorCode);
         }
     }
-#endif
+// #endif
 }
 
 // Unused
 s32 func_801A5488(u8* word) {
-    return 0;
-#if 0
+    // return 0;
+// #if 0
     s32 errorCode;
     OSMesgQueue* serialEventQueue;
 
@@ -161,7 +161,7 @@ s32 func_801A5488(u8* word) {
     PadMgr_VoiceReleaseSerialEventQueue(serialEventQueue);
 
     return errorCode;
-#endif
+// #endif
 }
 
 u8* func_801A54C4(void) {
@@ -169,8 +169,8 @@ u8* func_801A54C4(void) {
 }
 
 s32 func_801A54D0(u16 wordId) {
-    return 0;
-#if 0
+    // return 0;
+// #if 0
     s32 errorCode;
     u8 phi_t0 = true;
     u8 numWords;
@@ -211,12 +211,12 @@ s32 func_801A54D0(u16 wordId) {
     }
 
     return errorCode;
-#endif
+// #endif
 }
 
 s32 func_801A5680(u16 wordId) {
-    return 0;
-#if 0
+//     return 0;
+// #if 0
     s32 errorCode;
     u8 phi_a3 = true;
     u8 numWords;
@@ -257,12 +257,12 @@ s32 func_801A5680(u16 wordId) {
     }
 
     return errorCode;
-#endif
+// #endif
 }
 
 s32 func_801A5808(void) {
-    return 0;
-#if 0
+//     return 0;
+// #if 0
     s32 errorCode = 0;
     s32 ret;
     OSMesgQueue* serialEventQueue;
@@ -331,7 +331,7 @@ s32 func_801A5808(void) {
     ret = func_801A51F0(errorCode);
 
     return ret;
-#endif
+// #endif
 }
 
 // Unused
