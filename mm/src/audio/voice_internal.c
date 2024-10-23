@@ -128,6 +128,7 @@ void func_801A53E8(u16 distance, u16 answerNum, u16 warning, u16 voiceLevel, u16
     D_801FD5A0.warning = warning;
     D_801FD5A0.voiceLevel = voiceLevel;
     D_801FD5A0.voiceRelLevel = voiceRelLevel;
+    // func_801A53E8(800, 2, VOICE_WARN_TOO_SMALL, 500, 2000);
 }
 
 // Unused

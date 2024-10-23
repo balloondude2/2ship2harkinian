@@ -70,6 +70,7 @@ void InitEnhancements() {
     RegisterTatlISG();
     RegisterVariableFlipHop();
     RegisterWoodfallMountainAppearance();
+    RegisterVoiceInput();
 
     // Cutscenes
     RegisterCutscenes();

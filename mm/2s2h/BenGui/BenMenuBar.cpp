@@ -744,6 +744,10 @@ void DrawEnhancementsMenu() {
                                  "Requires a scene reload to take effect" })) {
                 RegisterWoodfallMountainAppearance();
             }
+            if (UIWidgets::CVarCheckbox("VRU", "gEnhancements.Restorations.VoiceInput",
+                    { .tooltip = "Enable VRU" })) {
+                        RegisterVoiceInput;
+                    }
 
             ImGui::EndMenu();
         }

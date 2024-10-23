@@ -37,6 +37,7 @@
 #include "fault.h"
 #include <stdio.h>
 #include <string.h>
+#include "2s2h/GameInteractor/GameInteractor.h"
 // extern FaultMgr gFaultMgr;
 
 #define PADMGR_RETRACE_MSG (1 << 0)
@@ -552,7 +553,7 @@ void PadMgr_UpdateConnections(void) {
     for (i = 0; i < MAXCONTROLLERS; i++) {
         // LUSLOG_DEBUG("padStatus.err: %x", sPadMgrInstance->padStatus[i].err_no); // 0
         // LUSLOG_DEBUG("padStatus.type: %x", sPadMgrInstance->padStatus[i].type); // 0
-        if (i == MAXCONTROLLERS - 1) { // force port 4 to be voice
+        if (i == 3) { // force port 4 to be voice
             goto Voice;
         }
         goto TriggerKenix;
