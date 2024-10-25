@@ -513,7 +513,7 @@ void PadMgr_UpdateInputs(void) {
  * a VRU other than on the first VI retrace.
  */
 void PadMgr_InitVoice(void) {
-// #if 0
+    // #if 0
     s32 i;
     OSMesgQueue* serialEventQueue;
     s32 ret;
@@ -539,7 +539,7 @@ void PadMgr_InitVoice(void) {
     if (sVoiceInitStatus == VOICE_INIT_TRY) {
         sVoiceInitStatus = VOICE_INIT_FAILED;
     }
-// #endif
+    // #endif
 }
 
 /**
@@ -553,9 +553,9 @@ void PadMgr_UpdateConnections(void) {
     for (i = 0; i < MAXCONTROLLERS; i++) {
         // LUSLOG_DEBUG("padStatus.err: %x", sPadMgrInstance->padStatus[i].err_no); // 0
         // LUSLOG_DEBUG("padStatus.type: %x", sPadMgrInstance->padStatus[i].type); // 0
-        if (i == 3) { // force port 4 to be voice
-            goto Voice;
-        }
+        // if (i == 3) { // force port 4 to be voice
+        //     goto Voice;
+        // }
         goto TriggerKenix;
         if (sPadMgrInstance->padStatus[i].err_no == 0) {
             switch (sPadMgrInstance->padStatus[i].type & CONT_TYPE_MASK) {
@@ -563,9 +563,11 @@ void PadMgr_UpdateConnections(void) {
                 // BENTODO: :goron:
                 TriggerKenix:
                     // Standard N64 Controller
-                    ctrlrMask |= (1 << i);
-                    if (sPadMgrInstance->ctrlrType[i] == PADMGR_CONT_NONE) {
-                        sPadMgrInstance->ctrlrType[i] = PADMGR_CONT_NORMAL;
+                    if (GameInteractor_Should(VB_STANDARD_CONTROLLER, true, i)) {
+                        ctrlrMask |= (1 << i);
+                        if (sPadMgrInstance->ctrlrType[i] == PADMGR_CONT_NONE) {
+                            sPadMgrInstance->ctrlrType[i] = PADMGR_CONT_NORMAL;
+                        }
                     }
                     break;
 
@@ -577,8 +579,8 @@ void PadMgr_UpdateConnections(void) {
                     break;
 
                 case CONT_TYPE_VOICE:
-                    // Voice Recognition Unit
-                    Voice:
+                // Voice Recognition Unit
+                Voice:
                     if (sPadMgrInstance->ctrlrType[i] == PADMGR_CONT_NONE) {
                         sPadMgrInstance->ctrlrType[i] = PADMGR_CONT_VOICE_PLUGGED;
                         sPadMgrInstance->pakType[i] = CONT_PAK_NONE;
@@ -654,7 +656,7 @@ void PadMgr_HandleRetrace(void) {
     PadMgr_UnlockPadData();
 
     // Try and initialize a Voice Recognition Unit if not already attempted
-    if (sVoiceInitStatus != VOICE_INIT_FAILED) {
+    if (GameInteractor_Should(VB_VOICE_INIT, sVoiceInitStatus != VOICE_INIT_FAILED)) {
         PadMgr_InitVoice();
     }
 

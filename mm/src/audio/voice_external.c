@@ -33,12 +33,12 @@ u16 sTopScoreWordId = VOICE_WORD_ID_NONE;
 u8 D_801D8E48 = 0;
 void func_801A4EB8(void);
 
-void func_801A4EB0(void) { // AudioVoice_Noop() 
+void func_801A4EB0(void) { // AudioVoice_Noop()
     func_801A4EB8();
 }
 
 void func_801A4EB8(void) {
-// #if 0
+    // #if 0
     u8* new_var;
     OSMesgQueue* serialEventQueue;
     s32 index;
@@ -68,12 +68,12 @@ void func_801A4EB8(void) {
         func_801A53E8(800, 2, VOICE_WARN_TOO_SMALL, 500, 2000);
         D_801D8E3C = 1;
     }
-// #endif
+    // #endif
 }
 
 // Used externally in code_8019AF00
 void func_801A4FD8(void) { // AudioVoice_ResetWord()
-// #if 0
+                           // #if 0
     // LUSLOG_DEBUG("in AudioVoice_Reset, D_801D8E3C: %x", D_801D8E3C);
 
     s32 errorCode;
@@ -95,7 +95,7 @@ void func_801A4FD8(void) { // AudioVoice_ResetWord()
         func_801A5080(VOICE_WORD_ID_HIYA);
         func_801A5080(VOICE_WORD_ID_CHEESE);
     }
-// #endif
+    // #endif
 }
 
 void func_801A5080(u16 wordId) {
