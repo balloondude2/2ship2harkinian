@@ -6,9 +6,10 @@
 extern "C" {
 OSMesgQueue* PadMgr_AcquireSerialEventQueue(void);
 void PadMgr_ReleaseSerialEventQueue(OSMesgQueue* serialEventQueue);
-PlayState* gPlayState;
+// PlayState* gPlayState;
+
+#include "variables.h"
 #include "z64voice.h"
-#include "macros.h"
 void func_801A4EB8(void);
 }
 
