@@ -34,6 +34,16 @@ enum DekuGuardSearchBallsOptions {
     DEKU_GUARD_SEARCH_BALLS_ALWAYS,
 };
 
+enum VoiceWordOptions {
+    VOICE_WORD_TIME,
+    VOICE_WORD_PICTURE,
+    VOICE_WORD_WAKE,
+    VOICE_WORD_SIT,
+    VOICE_WORD_MILK,
+    VOICE_WORD_EPONA,
+    VOICE_WORD_NONE = 0xFFFF,
+};
+
 // Old Entry Point
 void InitEnhancements();
 
