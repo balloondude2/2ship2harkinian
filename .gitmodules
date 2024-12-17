@@ -7,3 +7,6 @@
 [submodule "ZAPDTR"]
 	path = ZAPDTR
 	url = https://github.com/louist103/ZAPDTR.git
+[submodule "whisper.cpp"]
+	path = whisper.cpp
+	url = https://github.com/ggerganov/whisper.cpp.git
