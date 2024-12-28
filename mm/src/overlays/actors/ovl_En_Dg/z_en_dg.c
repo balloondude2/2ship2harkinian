@@ -6,6 +6,7 @@
 
 #include "z_en_dg.h"
 #include "overlays/actors/ovl_En_Aob_01/z_en_aob_01.h"
+#include "z64voice.h"
 
 #define FLAGS (ACTOR_FLAG_TARGETABLE | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_10 | ACTOR_FLAG_800000)
 
@@ -37,6 +38,7 @@ void EnDg_Held(EnDg* this, PlayState* play);
 void EnDg_Thrown(EnDg* this, PlayState* play);
 void EnDg_SetupTalk(EnDg* this, PlayState* play);
 void EnDg_Talk(EnDg* this, PlayState* play);
+void EnDg_SitOnce(EnDg* this, PlayState* play);
 
 ActorInit En_Dg_InitVars = {
     /**/ ACTOR_EN_DG,
@@ -693,7 +695,35 @@ void EnDg_IdleMove(EnDg* this, PlayState* play) {
         EnDg_ChangeAnim(&this->skelAnime, sAnimationInfo, DOG_ANIM_BARK);
         this->actionFunc = EnDg_IdleBark;
     }
+
+    // voiceRegion
+    if (this->actor.xzDistToPlayer < 150.0f) {
+        if (AudioVoice_GetWord() == VOICE_WORD_ID_SIT) {
+            EnDg_ChangeAnim(&this->skelAnime, sAnimationInfo, DOG_ANIM_SIT_DOWN_ONCE);
+            this->timer = 30;
+            this->actionFunc = EnDg_SitOnce;
+        } 
+    }
 }
+
+void EnDg_SitOnce(EnDg* this, PlayState* play) {
+    Player* player = GET_PLAYER(play);
+
+    if (!(this->actor.bgCheckFlags & BGCHECKFLAG_GROUND)) {
+        this->actionFunc = EnDg_Fall;
+    }
+
+    if (this->actor.xzDistToPlayer < 50.0f) {
+        Math_ApproachS(&this->actor.shape.rot.y, this->actor.yawTowardsPlayer, 4, 0xC00);
+        this->actor.world.rot.y = this->actor.shape.rot.y;
+    }
+
+    if (DECR(this->timer) == 0) {
+        this->timer = Rand_S16Offset(60, 60);
+        EnDg_SetupIdleMove(this, play);
+    }
+}
+// endregion
 
 /**
  * Stops and barks, before returning to moving along its path.
