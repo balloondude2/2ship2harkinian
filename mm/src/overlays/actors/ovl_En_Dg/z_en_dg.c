@@ -702,7 +702,7 @@ void EnDg_IdleMove(EnDg* this, PlayState* play) {
             EnDg_ChangeAnim(&this->skelAnime, sAnimationInfo, DOG_ANIM_SIT_DOWN_ONCE);
             this->timer = 30;
             this->actionFunc = EnDg_SitOnce;
-        } 
+        }
     }
 }
 
