@@ -50,6 +50,7 @@ typedef enum {
     DISABLE_FOR_FRAME_ADVANCE_OFF,
     DISABLE_FOR_WARP_POINT_NOT_SET,
     DISABLE_FOR_INTRO_SKIP_OFF,
+    DISABLE_FOR_VOICE_OFF,
 } DisableOption;
 
 struct widgetInfo;
@@ -348,7 +349,12 @@ static std::map<DisableOption, disabledInfo> disabledMap = {
         "Warp Point Not Saved" } },
     { DISABLE_FOR_INTRO_SKIP_OFF,
       { [](disabledInfo& info) -> bool { return !CVarGetInteger("gEnhancements.Cutscenes.SkipIntroSequence", 0); },
-        "Intro Skip Not Selected" } }
+        "Intro Skip Not Selected" } },
+    { DISABLE_FOR_VOICE_OFF,
+      { [](disabledInfo& info) -> bool {
+           return !CVarGetInteger("gEnhancements.Restorations.VoiceRecognitionUnit", 0);
+       },
+        "Voice Recognition Unit is Disabled" } }
 };
 
 std::unordered_map<int32_t, const char*> menuThemeOptions = {
@@ -431,6 +437,12 @@ static const std::unordered_map<int32_t, const char*> dekuGuardSearchBallsOption
     { DEKU_GUARD_SEARCH_BALLS_NEVER, "Never" },
     { DEKU_GUARD_SEARCH_BALLS_NIGHT_ONLY, "Night Only" },
     { DEKU_GUARD_SEARCH_BALLS_ALWAYS, "Always" },
+};
+
+static const std::unordered_map<int32_t, const char*> voiceWordOptions = {
+    { VOICE_WORD_NONE, "None" },    { VOICE_WORD_TIME, "ato nan jikan" }, { VOICE_WORD_PICTURE, "hai chi-zu" },
+    { VOICE_WORD_WAKE, "okiro-" },  { VOICE_WORD_SIT, "osuwari" },        { VOICE_WORD_MILK, "miruku" },
+    { VOICE_WORD_EPONA, "haiya-" },
 };
 
 void FreeLookPitchMinMax() {
@@ -1391,6 +1403,22 @@ void AddEnhancements() {
                 WIDGET_CVAR_CHECKBOX },
               { "Tatl ISG", "gEnhancements.Restorations.TatlISG", "Restores Navi ISG from OoT, but now with Tatl.",
                 WIDGET_CVAR_CHECKBOX },
+              { "Voice Recognition Unit", "gEnhancements.Restorations.VoiceRecognitionUnit",
+                "Enables VRU functionality.", WIDGET_CVAR_CHECKBOX },
+              { "VRU Word Selection",
+                "gEnhancements.Restorations.VoiceRecognitionUnitWord",
+                "Choose what word to 'say' when L is pressed.\n"
+                "- None: No word\n"
+                "- ato nan jikan: What time is it? Ask Sheikah Stones.\n"
+                "- hai chi-zu: Say Cheese. Take a picture.\n"
+                "- okiro-: Wake up. Wake up a sleepy scrub.\n"
+                "- osuwari: Sit. Does not appear to do anything.\n"
+                "- miruku: Milk. Ask a cow nicely for two portions of milk.\n"
+                "- Haiya-: Spur Epona.",
+                WIDGET_CVAR_COMBOBOX,
+                { .defaultVariant = VOICE_WORD_NONE, .comboBoxOptions = voiceWordOptions },
+                nullptr,
+                [](widgetInfo& info) { info.isHidden = disabledMap.at(DISABLE_FOR_VOICE_OFF).active; } },
               { "Woodfall Mountain Appearance", "gEnhancements.Restorations.WoodfallMountainAppearance",
                 "Restores the appearance of Woodfall mountain to not look poisoned "
                 "when viewed from Termina Field after clearing Woodfall Temple\n\n"
