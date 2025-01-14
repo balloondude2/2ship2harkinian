@@ -309,6 +309,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE assets
     ${CMAKE_CURRENT_SOURCE_DIR}/../libultraship/src/graphic/Fast3D/U64/PR
     ${CMAKE_CURRENT_SOURCE_DIR}/../libultraship/src/graphic
     ${CMAKE_CURRENT_SOURCE_DIR}/../ZAPDTR/ZAPD/resource/type
+    ${CMAKE_CURRENT_SOURCE_DIR}/../vosk-api
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/2s2h/
 	${SDL2-INCLUDE}
@@ -611,6 +612,7 @@ endif()
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
 INSTALL(FILES $<TARGET_PDB_FILE:2ship> DESTINATION ./debug COMPONENT 2s2h)
 INSTALL(FILES ${CMAKE_BINARY_DIR}/mm/2ship.o2r DESTINATION . COMPONENT 2s2h)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../vosk-api/libvosk.lib)
 endif()
 
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
