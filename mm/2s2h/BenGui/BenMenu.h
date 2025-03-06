@@ -81,6 +81,12 @@ static const std::unordered_map<int32_t, const char*> timeStopOptions = {
     { TIME_STOP_TEMPLES_DUNGEONS, "Temples + Mini Dungeons" },
 };
 
+static const std::unordered_map<int32_t, const char*> goronRaceOptions = {
+    { GORON_RACE_VANILLA, "Vanilla" },
+    { GORON_RACE_EASY, "Easy" },
+    { GORON_RACE_EASIER, "Easier" },
+};
+
 static const std::unordered_map<int32_t, const char*> notificationPosition = {
     { 0, "Top Left" }, { 1, "Top Right" }, { 2, "Bottom Left" }, { 3, "Bottom Right" }, { 4, "Hidden" },
 };

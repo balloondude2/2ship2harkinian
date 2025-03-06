@@ -879,6 +879,15 @@ void BenMenu::AddEnhancements() {
         .CVar("gEnhancements.Minigames.SkipBalladOfWindfish")
         .Options(CheckboxOptions().Tooltip(
             "Play the complete Ballad after playing in one form if you have all three transformation masks."));
+    AddWidget(path, "Easy Goron Race", WIDGET_CVAR_CHECKBOX)
+        .CVar("gEnhancements.Minigames.GoronRace")
+        .Options(CheckboxOptions().Tooltip(
+            "Reduces rubberbanding in goron race."));
+    AddWidget(path, "Easy Goron Race", WIDGET_CVAR_COMBOBOX)
+        .CVar("gCheats.Minigames.GoronRace")
+        .Options(
+            ComboboxOptions()
+                .ComboMap(goronRaceOptions));
 
     path.column = 3;
     AddWidget(path, "Saving", WIDGET_SEPARATOR_TEXT);

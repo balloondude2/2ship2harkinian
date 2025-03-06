@@ -7,6 +7,7 @@
 #include "z_en_rg.h"
 #include "objects/gameplay_keep/gameplay_keep.h"
 #include "objects/object_oF1d_map/object_oF1d_map.h"
+#include "2s2h/GameInteractor/GameInteractor.h"
 
 #define FLAGS (ACTOR_FLAG_10 | ACTOR_FLAG_80000000)
 
@@ -459,6 +460,10 @@ s32 func_80BF47AC(EnRg* this, PlayState* play) {
     Player* player = GET_PLAYER(play);
     f32 phi_f0;
     f32 phi_f2;
+
+    if (GameInteractor_Should(VB_GORON_RACE, false, this)) {
+        return false;
+    }
 
     if (player->linearVelocity < 20.0f) {
         phi_f2 = 20.0f;

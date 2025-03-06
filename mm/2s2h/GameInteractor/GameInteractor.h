@@ -232,6 +232,7 @@ typedef enum {
     VB_GIVE_ITEM_FROM_GK_LULLABY,
     VB_PLAY_LOW_HP_ALARM,
     VB_PLAY_GORON_CHILD_CRY,
+    VB_GORON_RACE,
 } GIVanillaBehavior;
 
 typedef enum {

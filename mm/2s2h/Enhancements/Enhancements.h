@@ -39,6 +39,12 @@ enum DekuGuardSearchBallsOptions {
     DEKU_GUARD_SEARCH_BALLS_ALWAYS,
 };
 
+enum GoronRaceOptions {
+    GORON_RACE_VANILLA,
+    GORON_RACE_EASY,
+    GORON_RACE_EASIER,
+};
+
 // Old Entry Point
 void InitEnhancements();
 
