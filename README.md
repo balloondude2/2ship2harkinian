@@ -3,6 +3,8 @@
 
 # 2 Ship 2 Harkinian
 
+This is an outdated branch.
+
 ## Discord
 
 Official Discord: https://discord.com/invite/shipofharkinian
