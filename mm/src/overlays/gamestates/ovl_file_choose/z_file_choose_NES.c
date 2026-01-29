@@ -2327,6 +2327,9 @@ void FileSelect_UpdateAndDrawSkybox(FileSelectState* this) {
     sFileSelectSkyboxRotation += -0xA;
 
     CLOSE_DISPS(this->state.gfxCtx);
+
+    GameInteractor_Should(VB_PICTO_ACTIVATE, true, this);
+
 }
 
 void (*gFileSelectDrawFuncs[])(GameState*) = {

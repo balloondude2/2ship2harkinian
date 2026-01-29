@@ -11,6 +11,7 @@ using json = nlohmann::json;
 
 extern "C" {
 #include "variables.h"
+#include "src/overlays/gamestates/ovl_file_choose/z_file_select.h"
 }
 
 #define CVAR_NAME "gEnhancements.Items.ColorPictograph"
@@ -18,6 +19,7 @@ extern "C" {
 
 static s16 fileNumber = 1;
 static u16 pictoPhotoRGBABuffer[PICTO_PHOTO_SIZE];
+static bool loaded = false;
 
 void SavePictoPng() {
     const int width = PICTO_PHOTO_WIDTH;
@@ -152,6 +154,57 @@ void DrawPicto(s16 sp2CC) {
     CLOSE_DISPS(gPlayState->state.gfxCtx);
 }
 
+void DrawTest(FileSelectState* state) {
+    
+        s16 pictoRectTop;
+        s16 pictoRectLeft;
+
+        
+        OPEN_DISPS(state->state.gfxCtx);
+
+        // gDPPipeSync(POLY_OPA_DISP++);
+        // gDPSetRenderMode(POLY_OPA_DISP++, G_RM_XLU_SURF, G_RM_XLU_SURF2);
+        // gDPSetCombineMode(POLY_OPA_DISP++, G_CC_PRIMITIVE, G_CC_PRIMITIVE);
+        // gDPSetPrimColor(POLY_OPA_DISP++, 0, 0, 200, 200, 200, 250);
+        // gDPFillRectangle(POLY_OPA_DISP++, 70, 22, 251, 151);
+
+        Gfx_SetupDL39_Opa(state->state.gfxCtx);
+
+        gDPSetRenderMode(POLY_OPA_DISP++, G_RM_OPA_SURF, G_RM_OPA_SURF2);
+        gDPSetCombineMode(POLY_OPA_DISP++, G_CC_MODULATEI_PRIM, G_CC_MODULATEI_PRIM);
+        // gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 250, 160, 160, 255);
+
+        pictoRectTop = 0;
+        s32 scaledStripHeight = SCREEN_HEIGHT / (PICTO_PHOTO_HEIGHT / 8);
+        for (s16 sp2CC = 0; sp2CC < (PICTO_PHOTO_HEIGHT / 8); sp2CC++, pictoRectTop += scaledStripHeight) {
+                pictoRectLeft = 0;
+
+                gDPSetCombineMode(POLY_OPA_DISP++, G_CC_DECALRGBA, G_CC_DECALRGBA);
+
+                gSPInvalidateTexCache(POLY_OPA_DISP++, (uintptr_t)(pictoPhotoRGBABuffer) + (0xA00 * sp2CC));
+
+                gDPLoadTextureBlock(POLY_OPA_DISP++, 
+                    (u16*)(pictoPhotoRGBABuffer) + (0x500 * sp2CC), 
+                    G_IM_FMT_RGBA, G_IM_SIZ_16b,
+                    PICTO_PHOTO_WIDTH, 8, 
+                    0, 
+                    G_TX_NOMIRROR | G_TX_WRAP, 
+                    G_TX_NOMIRROR | G_TX_WRAP, 
+                    G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+
+                gSPTextureRectangle(POLY_OPA_DISP++, 
+                    0 << 2, 
+                    pictoRectTop << 2,
+                    SCREEN_WIDTH << 2, 
+                    (pictoRectTop + scaledStripHeight << 2),
+                    G_TX_RENDERTILE, 0, 0, 
+                    (PICTO_PHOTO_WIDTH << 10) / SCREEN_WIDTH,
+                    (8 << 10) / scaledStripHeight);
+        }
+            
+        CLOSE_DISPS(state->state.gfxCtx);
+}
+
 void RegisterColorPictograph() {
     COND_VB_SHOULD(VB_PICTO_TAKE, true /*maybe cvar?*/, {
         PreRender* prerender = va_arg(args, PreRender*);
@@ -173,9 +226,12 @@ void RegisterColorPictograph() {
     COND_HOOK(OnSaveLoad, true, [](s16 fileNum) { fileNumber = fileNum + 1; });
 
     COND_VB_SHOULD(VB_PICTO_ACTIVATE, CVAR, {
-        if (*should) {
+        FileSelectState* state = va_arg(args, FileSelectState*);
+        if (true) {
             LoadPictoPNG();
+            // loaded = true;
         }
+        DrawTest(state);
     });
 }
 
