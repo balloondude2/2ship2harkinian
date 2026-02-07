@@ -128,6 +128,7 @@ std::vector<const char*> checkTypeIconList = {
     /*RCTYPE_MINIGAME*/ gArcheryScoreIconTex,
     /*RCTYPE_NPC*/ gItemIconBombersNotebookTex,
     /*RCTYPE_OWL*/ gWorldMapOwlFaceTex,
+    /*RCTYPE_PICTO*/ gItemIconPictographBoxTex,
     /*RCTYPE_POT*/ gPotTrackerIcon,
     /*RCTYPE_REMAINS*/ gItemIconBombersNotebookTex,
     /*RCTYPE_SHOP*/ gItemIconAdultsWalletTex,
@@ -227,7 +228,7 @@ void initializeSceneChecks() {
             for (auto& [randoCheckId, _] : staticRegion.checks) {
                 auto& randoStaticCheck = Rando::StaticData::Checks[randoCheckId];
                 RandoSaveCheck& randoSaveCheck = RANDO_SAVE_CHECKS[randoCheckId];
-                if (!randoSaveCheck.shuffled || randoStaticCheck.randoCheckType != RCTYPE_ENEMY_DROP) {
+                if (!randoSaveCheck.shuffled || (randoStaticCheck.randoCheckType != RCTYPE_ENEMY_DROP && randoStaticCheck.randoCheckType != RCTYPE_PICTO)) {
                     continue;
                 }
 

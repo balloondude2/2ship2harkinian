@@ -1503,6 +1503,10 @@ typedef enum {
     // - `*ColliderElement acElem`
     VB_PERFORM_AC_COLLISION,
 
+
+    
+    VB_PICTO_TEST,
+
     // #### `result`
     // ```c
     // Rand_Next() & 0x80

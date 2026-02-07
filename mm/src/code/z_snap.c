@@ -2,6 +2,8 @@
 #include "z64snap.h"
 #include "overlays/actors/ovl_En_Kakasi/z_en_kakasi.h"
 
+#include "2s2h/GameInteractor/GameInteractor.h"
+
 #define PICTO_SEEN_IN_SCENE 1
 #define PICTO_SEEN_ANYWHERE 2
 
@@ -28,6 +30,8 @@ s32 Snap_RecordPictographedActors(PlayState* play) {
     for (; category < ACTORCAT_MAX; category++) {
         for (actor = play->actorCtx.actorLists[category].first; actor != NULL; actor = actor->next) {
             seen = 0;
+
+            GameInteractor_Should(VB_PICTO_TEST, false, actor);
 
             // Actors which must be pictographed in a specific scene
             switch (play->sceneId) {
