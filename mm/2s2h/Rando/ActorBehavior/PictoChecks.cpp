@@ -8,7 +8,11 @@ extern "C" {
 #include "z64snap.h"
 }
 
-#define PICTO_FLAG(actorId) RANDO_INF_PICTO_##actorId
+
+std::unordered_map<int16_t, int16_t> actorPictoFlagMap = {
+    { ACTOR_OBJ_WARPSTONE, RANDO_INF_PICTO_ACTOR_OBJ_WARPSTONE },
+    { ACTOR_EN_BAL, RANDO_INF_PICTO_ACTOR_EN_BAL },
+};
 
 void Rando::ActorBehavior::InitPictoChecksBehavior() {
     bool shouldRegister = IS_RANDO && RANDO_SAVE_OPTIONS[RO_SHUFFLE_PICTOS];
@@ -20,16 +24,13 @@ void Rando::ActorBehavior::InitPictoChecksBehavior() {
         // values in validate function are mostly taken from tingle's function, might need adjusting
         if (Snap_ValidatePictograph(gPlayState, actor, PICTO_VALID_0, &actor->focus.pos,
                                          &actor->shape.rot, 10.0f, 400.0f, -1) == 0) {
+                                  
+            auto it = actorPictoFlagMap.find(actor->id);
+            if (it != actorPictoFlagMap.end()) {
+                int16_t flag = it->second;
 
-            // don't love this pattern                                
-            switch (actor->id) {
-                case ACTOR_OBJ_WARPSTONE:
-                    Flags_SetRandoInf(PICTO_FLAG(ACTOR_OBJ_WARPSTONE));
-                    break;
-                case ACTOR_EN_BAL:
-                    Flags_SetRandoInf(PICTO_FLAG(ACTOR_EN_BAL));
-                    break;
-
+                // Maybe set eligble flag instead and use randoinf flag for better picto message?
+                Flags_SetRandoInf(flag);
             }
         }
     });
