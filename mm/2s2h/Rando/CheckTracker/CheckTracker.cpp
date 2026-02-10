@@ -228,7 +228,8 @@ void initializeSceneChecks() {
             for (auto& [randoCheckId, _] : staticRegion.checks) {
                 auto& randoStaticCheck = Rando::StaticData::Checks[randoCheckId];
                 RandoSaveCheck& randoSaveCheck = RANDO_SAVE_CHECKS[randoCheckId];
-                if (!randoSaveCheck.shuffled || (randoStaticCheck.randoCheckType != RCTYPE_ENEMY_DROP && randoStaticCheck.randoCheckType != RCTYPE_PICTO)) {
+                if (!randoSaveCheck.shuffled || (randoStaticCheck.randoCheckType != RCTYPE_ENEMY_DROP &&
+                                                 randoStaticCheck.randoCheckType != RCTYPE_PICTO)) {
                     continue;
                 }
 

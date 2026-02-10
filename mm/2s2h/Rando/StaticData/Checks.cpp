@@ -2347,6 +2347,7 @@ std::map<RandoCheckId, RandoStaticCheck> Checks = {
     RC(RC_ZORA_CAPE_TREE_05,                                             RCTYPE_TREE,             SCENE_31MISAKI,                 FLAG_NONE,                   0x0,                                                                 RI_NONE),
 
     RC(RC_OWL_STATUE_PICTO,                                              RCTYPE_PICTO,            SCENE_MAX,                      FLAG_RANDO_INF,              RANDO_INF_PICTO_ACTOR_OBJ_WARPSTONE,                                 RI_NONE),
+    RC(RC_FAIRY_PICTO,                                                   RCTYPE_PICTO,            SCENE_MAX,                      FLAG_RANDO_INF,              RANDO_INF_PICTO_ACTOR_EN_ELF,                                        RI_NONE),
     RC(RC_TINGLE_PICTO,                                                  RCTYPE_PICTO,            SCENE_MAX,                      FLAG_RANDO_INF,              RANDO_INF_PICTO_ACTOR_EN_BAL,                                        RI_NONE),
 
 };

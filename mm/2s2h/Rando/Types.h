@@ -2352,8 +2352,8 @@ typedef enum {
     RC_ZORA_CAPE_TREE_04,
     RC_ZORA_CAPE_TREE_05,
 
-
     RC_OWL_STATUE_PICTO,
+    RC_FAIRY_PICTO,
     RC_TINGLE_PICTO,
 
     RC_MAX,
@@ -3111,8 +3111,9 @@ typedef enum {
 
     // Picto flags
     RANDO_INF_PICTO_ACTOR_EN_BAL,
+    RANDO_INF_PICTO_ACTOR_EN_ELF,
     RANDO_INF_PICTO_ACTOR_OBJ_WARPSTONE,
-    
+
     RANDO_INF_MAX,
 } RandoInf;
 
