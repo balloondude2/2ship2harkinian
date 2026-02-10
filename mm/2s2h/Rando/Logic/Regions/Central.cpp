@@ -155,6 +155,7 @@ static RegisterShipInitFunc initFunc([]() {
             CHECK(RC_CLOCK_TOWN_BOMBERS_NOTEBOOK, RANDO_EVENTS[RE_BOMBER_CODE]),
             CHECK(RC_CLOCK_TOWN_POSTBOX, HAS_ITEM(ITEM_MASK_POSTMAN)),
             CHECK(RC_KEATON_QUIZ, HAS_ITEM(ITEM_MASK_KEATON)),
+            CHECK(RC_TINGLE_PICTO, HAS_ITEM(ITEM_PICTOGRAPH_BOX)),
         },
         .exits = { //     TO                                         FROM
             EXIT(ENTRANCE(TERMINA_FIELD, 8),                ENTRANCE(NORTH_CLOCK_TOWN, 0), true),
@@ -200,6 +201,8 @@ static RegisterShipInitFunc initFunc([]() {
             CHECK(RC_CLOCK_TOWN_SOUTH_CHEST_UPPER, ((CAN_BE_DEKU && Flags_GetRandoInf(RANDO_INF_OBTAINED_MOONS_TEAR)) || HAS_ITEM(ITEM_HOOKSHOT)) && FINAL_DAY()),
             CHECK(RC_CLOCK_TOWN_SOUTH_CHEST_LOWER, (CAN_BE_DEKU && Flags_GetRandoInf(RANDO_INF_OBTAINED_MOONS_TEAR)) || HAS_ITEM(ITEM_HOOKSHOT)),
             CHECK(RC_CLOCK_TOWN_SOUTH_OWL_STATUE, CAN_USE_SWORD),
+            CHECK(RC_OWL_STATUE_PICTO, HAS_ITEM(ITEM_PICTOGRAPH_BOX)),
+            CHECK(RC_FAIRY_PICTO, HAS_ITEM(ITEM_PICTOGRAPH_BOX)),
         },
         .exits = { //     TO                                         FROM
             EXIT(ENTRANCE(CLOCK_TOWER_INTERIOR, 1),         ENTRANCE(SOUTH_CLOCK_TOWN, 0), true),

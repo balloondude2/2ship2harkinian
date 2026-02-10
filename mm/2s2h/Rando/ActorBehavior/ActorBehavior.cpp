@@ -129,6 +129,7 @@ void Rando::ActorBehavior::OnFileLoad() {
     Rando::ActorBehavior::InitObjTreeBehavior();
     Rando::ActorBehavior::InitObjTsuboBehavior();
     Rando::ActorBehavior::InitObjWarpstoneBehavior();
+    Rando::ActorBehavior::InitPictoChecksBehavior();
     Rando::ActorBehavior::InitPlayerBehavior();
     Rando::ActorBehavior::InitSoulsBehavior();
     Rando::ActorBehavior::InitTrapsBehavior();

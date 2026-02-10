@@ -98,6 +98,7 @@ void InitObjTaruBehavior();
 void InitObjTreeBehavior();
 void InitObjTsuboBehavior();
 void InitObjWarpstoneBehavior();
+void InitPictoChecksBehavior();
 void InitPlayerBehavior();
 void InitSoulsBehavior();
 void InitTrapsBehavior();
