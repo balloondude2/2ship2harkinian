@@ -75,8 +75,6 @@ s32 func_801A51F0(s32 errorCode) {
 }
 
 s32 func_801A5228(OSVoiceDictionary* dict) {
-    return 0;
-#if 0
     OSMesgQueue* serialEventQueue;
     s32 errorCode;
     u8 numWords;
@@ -114,12 +112,9 @@ s32 func_801A5228(OSVoiceDictionary* dict) {
     }
 
     return errorCode;
-#endif
 }
 
 OSVoiceData* func_801A5390(void) {
-    return NULL;
-#if 0
     OSVoiceData* voiceData;
     OSMesgQueue* serialEventQueue;
 
@@ -131,7 +126,6 @@ OSVoiceData* func_801A5390(void) {
     PadMgr_VoiceReleaseSerialEventQueue(serialEventQueue);
 
     return voiceData;
-#endif
 }
 
 // Unused
@@ -150,7 +144,6 @@ void func_801A53E8(u16 distance, u16 answerNum, u16 warning, u16 voiceLevel, u16
 // Unused
 // Could have a return? or be void return?
 void func_801A541C(s32 analog, s32 digital) {
-#if 0
     s32 errorCode;
     OSMesgQueue* serialEventQueue;
 
@@ -163,13 +156,10 @@ void func_801A541C(s32 analog, s32 digital) {
             func_801A51F0(errorCode);
         }
     }
-#endif
 }
 
 // Unused
 s32 func_801A5488(u8* word) {
-    return 0;
-#if 0
     s32 errorCode;
     OSMesgQueue* serialEventQueue;
 
@@ -178,7 +168,6 @@ s32 func_801A5488(u8* word) {
     PadMgr_VoiceReleaseSerialEventQueue(serialEventQueue);
 
     return errorCode;
-#endif
 }
 
 u8* AudioVoice_GetVoiceMaskPattern(void) {
@@ -186,8 +175,6 @@ u8* AudioVoice_GetVoiceMaskPattern(void) {
 }
 
 s32 AudioVoice_InitWordImplAlt(u16 wordId) {
-    return 0;
-#if 0
     s32 errorCode;
     u8 stopReadingData = true;
     u8 numWords;
@@ -228,12 +215,9 @@ s32 AudioVoice_InitWordImplAlt(u16 wordId) {
     }
 
     return errorCode;
-#endif
 }
 
 s32 AudioVoice_InitWordImpl(u16 wordId) {
-    return 0;
-#if 0
     s32 errorCode;
     u8 stopReadingData = true;
     u8 numWords;
@@ -274,12 +258,9 @@ s32 AudioVoice_InitWordImpl(u16 wordId) {
     }
 
     return errorCode;
-#endif
 }
 
 s32 func_801A5808(void) {
-    return 0;
-#if 0
     s32 errorCode = 0;
     s32 pad;
     OSMesgQueue* serialEventQueue;
@@ -348,7 +329,6 @@ s32 func_801A5808(void) {
     }
 
     return func_801A51F0(errorCode);
-#endif
 }
 
 // Unused

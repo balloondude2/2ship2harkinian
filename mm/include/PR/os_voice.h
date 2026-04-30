@@ -1,6 +1,9 @@
 #ifndef PR_OS_VOICE_H
 #define PR_OS_VOICE_H
 
+#include <libultraship/libultra/voice.h>
+#if 0
+
 #include "ultratypes.h"
 #include "os_message.h"
 
@@ -55,4 +58,5 @@ s32 osVoiceClearDictionary(OSVoiceHandle* hd, u8 numWords);
 s32 osVoiceMaskDictionary(OSVoiceHandle* hd, u8* maskPattern, int size);
 s32 osVoiceControlGain(OSVoiceHandle* hd, s32 analog, s32 digital);
 
+#endif
 #endif

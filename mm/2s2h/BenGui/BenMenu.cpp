@@ -75,6 +75,12 @@ static const std::vector<const char*> clockTypeOptions = {
     "Text only",  // CLOCK_TYPE_TEXT_BASED
 };
 
+static const std::vector<const char*> voiceRestorationOptions = {
+    "Off",      // VOICE_RESTORATION_OFF
+    "Japanese", // VOICE_RESTORATION_JAPANESE
+    "English",  // VOICE_RESTORATION_ENGLISH
+};
+
 static const std::vector<const char*> textureFilteringOptions = {
     "Three-Point", // Fast::FILTER_THREE_POINT,
     "Linear",      // Fast::FILTER_LINEAR
@@ -1563,6 +1569,17 @@ void BenMenu::AddEnhancements() {
     AddWidget(path, "JP Deku Palace Grottos", WIDGET_CVAR_CHECKBOX)
         .CVar("gEnhancements.Restorations.JPGrottos")
         .Options(CheckboxOptions().Tooltip("Restores the Deku Palace Grottos to their original Japanese layout."));
+    AddWidget(path, "Voice Recognition Restoration", WIDGET_CVAR_COMBOBOX)
+        .CVar("gEnhancements.Restorations.VoiceRecognitionUnit")
+        .Options(
+            ComboboxOptions()
+                // TODO: Update tooltip. Need to list VRU words. Maybe where to use? That'd be a lot in the tooltip
+                .Tooltip("Restores the cut voice recognition feature.\n"
+                         "- Off: Crouch stabs will always do the same damage as a slash with your current weapon.\n"
+                         "- Japanese: Uses the original Japanese phrases. \n"
+                         "- English: Uses English translations of the original Japanese phrases.")
+                .DefaultIndex(0)
+                .ComboVec(&voiceRestorationOptions));
     AddWidget(path, "Bonk Collision", WIDGET_CVAR_CHECKBOX)
         .CVar("gEnhancements.Restorations.BonkCollision")
         .Options(

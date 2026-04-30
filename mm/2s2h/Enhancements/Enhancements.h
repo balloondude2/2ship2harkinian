@@ -37,6 +37,12 @@ enum GibdoTradeSequenceOptions {
     GIBDO_TRADE_SEQUENCE_NO_TRADE,
 };
 
+enum VoiceRestorationOptions {
+    VOICE_RESTORATION_OFF,
+    VOICE_RESTORATION_JAPANESE,
+    VOICE_RESTORATION_ENGLISH,
+};
+
 enum DekuGuardSearchBallsOptions {
     DEKU_GUARD_SEARCH_BALLS_NIGHT_ONLY,
     DEKU_GUARD_SEARCH_BALLS_NEVER,

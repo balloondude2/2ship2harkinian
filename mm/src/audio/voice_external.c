@@ -35,7 +35,6 @@ void AudioVoice_Noop(void) {
 }
 
 void func_801A4EB8(void) {
-#if 0
     u8* voiceMaskPattern;
     OSMesgQueue* serialEventQueue;
     s32 index;
@@ -65,12 +64,10 @@ void func_801A4EB8(void) {
         func_801A53E8(800, 2, VOICE_WARN_TOO_SMALL, 500, 2000);
         D_801D8E3C = 1;
     }
-#endif
 }
 
 // Used externally in code_8019AF00
 void AudioVoice_ResetWord(void) {
-#if 0
     s32 errorCode;
     OSMesgQueue* serialEventQueue;
 
@@ -91,7 +88,6 @@ void AudioVoice_ResetWord(void) {
         AudioVoice_InitWord(VOICE_WORD_ID_HIYA);
         AudioVoice_InitWord(VOICE_WORD_ID_CHEESE);
     }
-#endif
 }
 
 void AudioVoice_InitWord(u16 wordId) {
