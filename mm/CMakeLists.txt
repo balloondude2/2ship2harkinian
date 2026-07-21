@@ -51,6 +51,15 @@ set(CMAKE_CONFIGURATION_TYPES
 ################################################################################
 include(CMake/Utils.cmake)
 
+
+################################################################################
+# Vosk
+################################################################################
+include(CMake/Vosk.cmake)
+vosk_import(
+    VERSION 0.3.45
+)
+
 ################################################################################
 # Additional Global Settings(add specific info there)
 ################################################################################
@@ -331,7 +340,7 @@ if(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE  $<$<CONFIG:Debug>:/ZI;>)
     target_link_options(${PROJECT_NAME} PRIVATE
         $<$<CONFIG:Debug>:
-            /INCREMENTAL
+            /INCREMENTAL:NO
         >
         $<$<CONFIG:Release>:
             /OPT:REF;
@@ -507,6 +516,14 @@ if(NOT CMAKE_SYSTEM_NAME MATCHES "NintendoSwitch|CafeOS")
         COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:2ship>/assets/symbols
         COMMAND ${VS_COPY_ASSETS_CMD}
     )
+    add_custom_command(
+        TARGET ${PROJECT_NAME}
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:vosk::vosk>
+            $<TARGET_FILE_DIR:${PROJECT_NAME}>
+    )
+
 endif()
 ################################################################################
 # Dependencies
@@ -551,6 +568,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
         "Vorbis::vorbisenc"
         "Vorbis::vorbisfile"
 		"OpusFile::opusfile"
+        "vosk::vosk"
 	)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
     find_package(SDL2)
@@ -591,6 +609,7 @@ else()
         "Vorbis::vorbisfile"
         "Opus::opus"
         "Opusfile::Opusfile"
+        "vosk::vosk"
 		SDL2::SDL2
  #       "$<$<BOOL:${BUILD_CROWD_CONTROL}>:SDL2_net::SDL2_net>"
 		${CMAKE_DL_LIBS}

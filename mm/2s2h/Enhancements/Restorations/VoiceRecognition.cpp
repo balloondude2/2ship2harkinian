@@ -7,6 +7,8 @@
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
 
+#include "BenPort.h"
+
 #include <libultraship/log/luslog.h>
 
 extern "C" {
@@ -115,8 +117,13 @@ int32_t osVoiceInit(OSMesgQueue* mq, OSVoiceHandle* hd, int channel) {
     }
 
     // TODO: Have cmake download these and update file paths accordingly
-    gVRU.modelEN = vosk_model_new("C:\\Users\\ballo\\Code\\vosk-model-small-en-us-0.15");
-    gVRU.modelJP = vosk_model_new("C:\\Users\\ballo\\Code\\vosk-model-small-ja-0.22");
+    std::string filePathEN = Ship::Context::GetPathRelativeToAppDirectory("vosk/vosk-model-small-en-us-0.15", appShortName);
+    std::string filePathJP = Ship::Context::GetPathRelativeToAppDirectory("vosk/vosk-model-small-ja-0.22", appShortName);
+
+    gVRU.modelEN = vosk_model_new(filePathEN.c_str());
+    gVRU.modelJP = vosk_model_new(filePathJP.c_str());
+
+    // TODO: Maybe check if models loaded successfully here
 
     gVRU.vocabEN = ogwordList;
     gVRU.vocabJP = ogwordListJP;
