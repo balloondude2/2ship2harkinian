@@ -340,7 +340,7 @@ if(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE  $<$<CONFIG:Debug>:/ZI;>)
     target_link_options(${PROJECT_NAME} PRIVATE
         $<$<CONFIG:Debug>:
-            /INCREMENTAL:
+            /INCREMENTAL:NO
         >
         $<$<CONFIG:Release>:
             /OPT:REF;
@@ -523,6 +523,13 @@ if(NOT CMAKE_SYSTEM_NAME MATCHES "NintendoSwitch|CafeOS")
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         $<TARGET_FILE:vosk::vosk>
         $<TARGET_FILE_DIR:${PROJECT_NAME}>
+
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${VOSK_DLL}"
+        "${VOSK_GCC_DLL}"
+        "${VOSK_STDCXX_DLL}"
+        "${VOSK_WINPTHREAD_DLL}"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
 
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${VOSK_MODEL_EN}"

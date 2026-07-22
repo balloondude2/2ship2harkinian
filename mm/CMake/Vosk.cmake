@@ -22,7 +22,7 @@ function(vosk_import)
             "vosk-win64-${VOSK_VERSION}.zip")
 
     elseif(APPLE)
-
+        set(VOSK_VERSION "0.3.42")
         set(VOSK_ARCHIVE
             "vosk-osx-${VOSK_VERSION}.zip")
 
@@ -105,7 +105,29 @@ function(vosk_import)
             VOSK_DLL
             NAMES libvosk.dll
             PATHS ${vosk_SOURCE_DIR}
-            NO_DEFAULT_PATH)
+            NO_DEFAULT_PATH
+        )
+
+        find_file(
+            VOSK_GCC_DLL
+            NAMES libgcc_s_seh-1.dll
+            PATHS ${vosk_SOURCE_DIR}
+            NO_DEFAULT_PATH
+        )
+
+        find_file(
+            VOSK_STDCXX_DLL
+            NAMES libstdc++-6.dll
+            PATHS ${vosk_SOURCE_DIR}
+            NO_DEFAULT_PATH
+        )
+
+        find_file(
+            VOSK_WINPTHREAD_DLL
+            NAMES libwinpthread-1.dll
+            PATHS ${vosk_SOURCE_DIR}
+            NO_DEFAULT_PATH
+        )
 
         find_file(
             VOSK_IMPLIB
