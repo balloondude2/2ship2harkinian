@@ -1536,7 +1536,7 @@ void BenMenu::AddEnhancements() {
 
     // Restorations
     path = { "Enhancements", "Restorations", SECTION_COLUMN_1 };
-    AddSidebarEntry("Enhancements", "Restorations", 3);
+    AddSidebarEntry("Enhancements", "Restorations", 2);
     AddWidget(path, "Restorations", WIDGET_SEPARATOR_TEXT);
     AddWidget(path, "Constant Distance Backflips and Sidehops", WIDGET_CVAR_CHECKBOX)
         .CVar("gEnhancements.Restorations.ConstantFlipsHops")
@@ -1569,17 +1569,6 @@ void BenMenu::AddEnhancements() {
     AddWidget(path, "JP Deku Palace Grottos", WIDGET_CVAR_CHECKBOX)
         .CVar("gEnhancements.Restorations.JPGrottos")
         .Options(CheckboxOptions().Tooltip("Restores the Deku Palace Grottos to their original Japanese layout."));
-    AddWidget(path, "Voice Recognition Restoration", WIDGET_CVAR_COMBOBOX)
-        .CVar("gEnhancements.Restorations.VoiceRecognitionUnit")
-        .Options(
-            ComboboxOptions()
-                // TODO: Update tooltip. Need to list VRU words. Maybe where to use? That'd be a lot in the tooltip
-                .Tooltip("Restores the cut voice recognition feature.\n"
-                         "- Off: Crouch stabs will always do the same damage as a slash with your current weapon.\n"
-                         "- Japanese: Uses the original Japanese phrases. \n"
-                         "- English: Uses English translations of the original Japanese phrases.")
-                .DefaultIndex(0)
-                .ComboVec(&voiceRestorationOptions));
     AddWidget(path, "Bonk Collision", WIDGET_CVAR_CHECKBOX)
         .CVar("gEnhancements.Restorations.BonkCollision")
         .Options(
@@ -1599,6 +1588,37 @@ void BenMenu::AddEnhancements() {
                      .Min(0)
                      .Max(40)
                      .DefaultValue(0));
+                        
+    path.column = SECTION_COLUMN_2;
+    
+    AddWidget(path, "Voice Recognition", WIDGET_SEPARATOR_TEXT);
+    AddWidget(path, "Voice Recognition Language", WIDGET_CVAR_COMBOBOX)
+        .CVar("gEnhancements.Restorations.VoiceRecognitionUnit")
+        .Options(
+            ComboboxOptions()
+                .Tooltip("Restores the cut voice recognition feature.\n"
+                         "- None\n"
+                         "- Japanese: Uses the original Japanese phrases. \n"
+                         "- English: Uses English translations of the original Japanese phrases.")
+                .DefaultIndex(0)
+                .ComboVec(&voiceRestorationOptions));
+    // TODO: This UI still leave a bit to be desired.
+    AddWidget(path, "Japanese Phrases", WIDGET_SEPARATOR_TEXT);
+    AddWidget(path, "Ato nan jikan - While z-targetting a gossip stone to get time.\n"
+        "Hai chi-zu - When pictograph is active to take a picture.\n"
+        "okiro- - Wakes the sleeping deku scrub in Swamp Spider House.\n"
+        "osuwari - No in-game effect.\n"
+        "miruku - Will cause cows to give milk like Epona's song.\n"
+        "haiya- - Spur Epona.", WIDGET_TEXT);
+    AddWidget(path, "English Words", WIDGET_SEPARATOR_TEXT);
+    AddWidget(path, "Time - While z-targetting a gossip stone to get time.\n"
+        "Cheese - When pictograph is active to take a picture.\n"
+        "Wake - Wakes the sleeping deku scrub in Swamp Spider House.\n"
+        "Sit - No in-game effect.\n"
+        "Milk - Will cause cows to give milk like Epona's song.\n"
+        "Go - Spur Epona.", WIDGET_TEXT);
+
+    
 
     // Difficulty Options
     path = { "Enhancements", "Difficulty Options", SECTION_COLUMN_1 };
