@@ -340,7 +340,7 @@ if(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE  $<$<CONFIG:Debug>:/ZI;>)
     target_link_options(${PROJECT_NAME} PRIVATE
         $<$<CONFIG:Debug>:
-            /INCREMENTAL:NO
+            /INCREMENTAL:
         >
         $<$<CONFIG:Release>:
             /OPT:REF;
@@ -517,12 +517,21 @@ if(NOT CMAKE_SYSTEM_NAME MATCHES "NintendoSwitch|CafeOS")
         COMMAND ${VS_COPY_ASSETS_CMD}
     )
     add_custom_command(
-        TARGET ${PROJECT_NAME}
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            $<TARGET_FILE:vosk::vosk>
-            $<TARGET_FILE_DIR:${PROJECT_NAME}>
-    )
+    TARGET ${PROJECT_NAME}
+    POST_BUILD
+
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_FILE:vosk::vosk>
+        $<TARGET_FILE_DIR:${PROJECT_NAME}>
+
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${VOSK_MODEL_EN}"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/vosk/vosk-model-small-en-us-0.15"
+
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${VOSK_MODEL_JA}"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/vosk/vosk-model-small-ja-0.22"
+)
 
 endif()
 ################################################################################

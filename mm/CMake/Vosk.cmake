@@ -1,6 +1,7 @@
 include_guard(GLOBAL)
 
 include(FetchContent)
+include(CMakeParseArguments)
 
 function(vosk_import)
     set(options)
@@ -12,49 +13,78 @@ function(vosk_import)
     endif()
 
     #
-    # Select release archive
+    # Runtime library
     #
+
     if(WIN32)
+
         set(VOSK_ARCHIVE
             "vosk-win64-${VOSK_VERSION}.zip")
 
     elseif(APPLE)
-        if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
-            # Official releases are universal.
-            set(VOSK_ARCHIVE
-                "vosk-osx-${VOSK_VERSION}.zip")
-        else()
-            set(VOSK_ARCHIVE
-                "vosk-osx-${VOSK_VERSION}.zip")
-        endif()
+
+        set(VOSK_ARCHIVE
+            "vosk-osx-${VOSK_VERSION}.zip")
 
     elseif(UNIX)
+
         if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
             message(FATAL_ERROR
-                "No official ARM64 Linux Vosk binary is currently handled by this module.")
+                "Linux ARM64 binaries are not currently supported.")
         endif()
 
         set(VOSK_ARCHIVE
             "vosk-linux-x86_64-${VOSK_VERSION}.zip")
 
     else()
-        message(FATAL_ERROR "Unsupported platform")
-    endif()
 
-    set(VOSK_URL
-        "https://github.com/alphacep/vosk-api/releases/download/v${VOSK_VERSION}/${VOSK_ARCHIVE}")
+        message(FATAL_ERROR "Unsupported platform")
+
+    endif()
 
     FetchContent_Declare(
         vosk
-        URL ${VOSK_URL}
+        URL https://github.com/alphacep/vosk-api/releases/download/v${VOSK_VERSION}/${VOSK_ARCHIVE}
     )
 
-    FetchContent_MakeAvailable(vosk)
+    #
+    # Speech models
+    #
+
+    FetchContent_Declare(
+        vosk_model_en
+        URL https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
+    )
+
+    FetchContent_Declare(
+        vosk_model_ja
+        URL https://alphacephei.com/vosk/models/vosk-model-small-ja-0.22.zip
+    )
+
+    FetchContent_MakeAvailable(
+        vosk
+        vosk_model_en
+        vosk_model_ja
+    )
 
     #
-    # Locate include directory
+    # Export model paths
     #
-    find_path(VOSK_INCLUDE_DIR
+
+    set(VOSK_MODEL_EN
+        "${vosk_model_en_SOURCE_DIR}"
+        CACHE INTERNAL "")
+
+    set(VOSK_MODEL_JA
+        "${vosk_model_ja_SOURCE_DIR}"
+        CACHE INTERNAL "")
+
+    #
+    # Includes
+    #
+
+    find_path(
+        VOSK_INCLUDE_DIR
         NAMES vosk_api.h
         PATHS ${vosk_SOURCE_DIR}
         NO_DEFAULT_PATH
@@ -62,28 +92,26 @@ function(vosk_import)
 
     if(NOT VOSK_INCLUDE_DIR)
         message(FATAL_ERROR
-            "Could not locate vosk_api.h after downloading Vosk.")
+            "Could not locate vosk_api.h")
     endif()
 
     #
-    # Locate library
+    # Runtime library
     #
+
     if(WIN32)
 
-        find_file(VOSK_DLL
+        find_file(
+            VOSK_DLL
             NAMES libvosk.dll
             PATHS ${vosk_SOURCE_DIR}
             NO_DEFAULT_PATH)
 
-        find_file(VOSK_IMPLIB
+        find_file(
+            VOSK_IMPLIB
             NAMES libvosk.lib
             PATHS ${vosk_SOURCE_DIR}
             NO_DEFAULT_PATH)
-
-        if(NOT VOSK_DLL OR NOT VOSK_IMPLIB)
-            message(FATAL_ERROR
-                "Could not locate Vosk DLL/import library.")
-        endif()
 
         add_library(vosk::vosk SHARED IMPORTED GLOBAL)
 
@@ -95,15 +123,11 @@ function(vosk_import)
 
     elseif(APPLE)
 
-        find_file(VOSK_LIB
+        find_file(
+            VOSK_LIB
             NAMES libvosk.dylib
             PATHS ${vosk_SOURCE_DIR}
             NO_DEFAULT_PATH)
-
-        if(NOT VOSK_LIB)
-            message(FATAL_ERROR
-                "Could not locate libvosk.dylib")
-        endif()
 
         add_library(vosk::vosk SHARED IMPORTED GLOBAL)
 
@@ -114,15 +138,11 @@ function(vosk_import)
 
     else()
 
-        find_file(VOSK_LIB
+        find_file(
+            VOSK_LIB
             NAMES libvosk.so
             PATHS ${vosk_SOURCE_DIR}
             NO_DEFAULT_PATH)
-
-        if(NOT VOSK_LIB)
-            message(FATAL_ERROR
-                "Could not locate libvosk.so")
-        endif()
 
         add_library(vosk::vosk SHARED IMPORTED GLOBAL)
 
@@ -132,4 +152,31 @@ function(vosk_import)
         )
 
     endif()
+
+    #
+    # Install runtime
+    #
+
+    install(
+        IMPORTED_RUNTIME_ARTIFACTS vosk::vosk
+        DESTINATION .
+        COMPONENT 2s2h
+    )
+
+    #
+    # Install speech models
+    #
+
+    install(
+        DIRECTORY "${VOSK_MODEL_EN}/"
+        DESTINATION "vosk/vosk-model-small-en-us-0.15"
+        COMPONENT 2s2h
+    )
+
+    install(
+        DIRECTORY "${VOSK_MODEL_JA}/"
+        DESTINATION "vosk/vosk-model-small-ja-0.22"
+        COMPONENT 2s2h
+    )
+
 endfunction()
