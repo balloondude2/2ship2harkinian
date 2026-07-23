@@ -202,3 +202,46 @@ function(vosk_import)
     )
 
 endfunction()
+
+function(vosk_copy_runtime target)
+    add_custom_command(
+        TARGET ${target}
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${VOSK_MODEL_EN}"
+            "$<TARGET_FILE_DIR:${target}>/vosk/vosk-model-small-en-us-0.15"
+
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${VOSK_MODEL_JA}"
+            "$<TARGET_FILE_DIR:${target}>/vosk/vosk-model-small-ja-0.22"
+    )
+
+    if(WIN32)
+        add_custom_command(
+            TARGET ${PROJECT_NAME}
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${VOSK_DLL}"
+                "${VOSK_GCC_DLL}"
+                "${VOSK_STDCXX_DLL}"
+                "${VOSK_WINPTHREAD_DLL}"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
+        )
+    elseif(APPLE)
+        add_custom_command(
+            TARGET ${PROJECT_NAME}
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${VOSK_LIB}"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
+        )
+    elseif(UNIX)
+        add_custom_command(
+            TARGET ${PROJECT_NAME}
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${VOSK_LIB}"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
+        )
+    endif()
+endfunction()

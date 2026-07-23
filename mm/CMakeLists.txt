@@ -516,29 +516,7 @@ if(NOT CMAKE_SYSTEM_NAME MATCHES "NintendoSwitch|CafeOS")
         COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:2ship>/assets/symbols
         COMMAND ${VS_COPY_ASSETS_CMD}
     )
-    add_custom_command(
-    TARGET ${PROJECT_NAME}
-    POST_BUILD
-
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        $<TARGET_FILE:vosk::vosk>
-        $<TARGET_FILE_DIR:${PROJECT_NAME}>
-
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${VOSK_DLL}"
-        "${VOSK_GCC_DLL}"
-        "${VOSK_STDCXX_DLL}"
-        "${VOSK_WINPTHREAD_DLL}"
-        "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
-
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${VOSK_MODEL_EN}"
-        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/vosk/vosk-model-small-en-us-0.15"
-
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${VOSK_MODEL_JA}"
-        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/vosk/vosk-model-small-ja-0.22"
-)
+    vosk_copy_runtime(${PROJECT_NAME})
 
 endif()
 ################################################################################
@@ -641,6 +619,14 @@ endif()
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
 INSTALL(FILES $<TARGET_PDB_FILE:2ship> DESTINATION ./debug COMPONENT 2s2h)
 INSTALL(FILES ${CMAKE_BINARY_DIR}/mm/2ship.o2r DESTINATION . COMPONENT 2s2h)
+install(
+    FILES
+        "${VOSK_GCC_DLL}"
+        "${VOSK_STDCXX_DLL}"
+        "${VOSK_WINPTHREAD_DLL}"
+    DESTINATION .
+    COMPONENT 2s2h
+)
 endif()
 
 find_program(CURL NAMES curl DOC "Path to the curl program.  Used to download files.")
