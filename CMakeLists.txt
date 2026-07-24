@@ -249,9 +249,13 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/mm/assets/xml/" DESTINATION ./assets/xml)
 # Rename the installed soh binary to drop the macos suffix
 INSTALL(CODE "FILE(RENAME \${CMAKE_INSTALL_PREFIX}/../MacOS/2s2h-macos \${CMAKE_INSTALL_PREFIX}/../MacOS/2s2h)")
 install(CODE "
-   include(BundleUtilities)
-  fixup_bundle(\"\${CMAKE_INSTALL_PREFIX}/../MacOS/2s2h\" \"\" \"${dirs}\")
-   ")
+    include(BundleUtilities)
+    fixup_bundle(
+        \"\${CMAKE_INSTALL_PREFIX}/../MacOS/2s2h\"
+        \"${VOSK_LIB}\"
+        \"${dirs}\"
+    )
+")
 
 endif()
 

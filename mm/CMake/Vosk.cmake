@@ -179,11 +179,31 @@ function(vosk_import)
     # Install runtime
     #
 
-    install(
-        IMPORTED_RUNTIME_ARTIFACTS vosk::vosk
-        DESTINATION .
-        COMPONENT 2s2h
-    )
+    if(WIN32)
+
+        install(
+            IMPORTED_RUNTIME_ARTIFACTS vosk::vosk
+            DESTINATION .
+            COMPONENT 2s2h
+        )
+
+    elseif(APPLE)
+
+        install(
+            FILES "${VOSK_LIB}"
+            DESTINATION ../Frameworks
+            COMPONENT 2s2h
+        )
+
+    else()
+
+        install(
+            IMPORTED_RUNTIME_ARTIFACTS vosk::vosk
+            DESTINATION .
+            COMPONENT 2s2h
+        )
+
+    endif()
 
     #
     # Install speech models
